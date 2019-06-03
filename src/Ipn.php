@@ -15,10 +15,7 @@ class Ipn extends Base
     {
         $config = $this->merchantByCurrency($config, $currency);
         $this->setup($config);
-        if (isset($this->debug_ipn)) {
-            $this->debug = $this->debug_ipn;
-            $this->commMethod = 'ipn';
-        }
+        $this->commMethod = 'ipn';
     }
 
     public function validateReceived(): bool
