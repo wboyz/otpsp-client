@@ -26,12 +26,12 @@ class Base
     public $defaultsData = [
         'BASE_URL' => "https://secure.simplepay.hu/payment/",
         'SANDBOX_URL' => "https://sandbox.simplepay.hu/payment/",
-        'LU_URL' => "order/lu.php",   //relative to BASE_URL
-        'ALU_URL' => "order/alu.php", //relative to BASE_URL
-        'IDN_URL' => "order/idn.php", //relative to BASE_URL
-        'IRN_URL' => "order/irn.php", //relative to BASE_URL
-        'IOS_URL' => "order/ios.php", //relative to BASE_URL
-        'OC_URL' => "order/tokens/"   //relative to BASE_URL
+        'LU_URL' => "order/lu.php",
+        'ALU_URL' => "order/alu.php",
+        'IDN_URL' => "order/idn.php",
+        'IRN_URL' => "order/irn.php",
+        'IOS_URL' => "order/ios.php",
+        'OC_URL' => "order/tokens/"
     ];
 
     public $propertyMapping = [
@@ -62,12 +62,6 @@ class Base
         'DEBUG_ONECLICK' => 'debugOneClick',
         'DEBUG_ALU' => 'debugAlu',
     ];
-
-
-    public function __construct(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-    }
 
     public function merchantByCurrency(array $config, string $currency = ''): array
     {

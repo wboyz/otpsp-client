@@ -19,12 +19,8 @@ class Ipn extends Base
             $this->debug = $this->debug_ipn;
             $this->commMethod = 'ipn';
         }
-
     }
 
-    /**
-     * Validate received data against HMAC HASH
-     */
     public function validateReceived(): bool
     {
         if (!$this->ipnPostDataCheck()) {
@@ -50,9 +46,6 @@ class Ipn extends Base
         }
     }
 
-    /**
-     * Creates INLINE string for confirmation
-     */
     public function confirmReceived(): string
     {
         if (!$this->ipnPostDataCheck()) {
@@ -75,9 +68,6 @@ class Ipn extends Base
         return $string;
     }
 
-    /**
-     * Check post data if contains REFNOEXT variable
-     */
     protected function ipnPostDataCheck(): bool
     {
         if (count($this->postData) < 1 || !array_key_exists('REFNOEXT', $this->postData)) {
