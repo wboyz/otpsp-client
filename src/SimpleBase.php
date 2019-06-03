@@ -6,16 +6,6 @@ namespace Cheppers\OtpClient;
 
 use Psr\Log\LoggerInterface;
 
-/**
- * Base class for SimplePay implementation
- *
- * @category SDK
- * @package  SimplePay_SDK
- * @author   SimplePay IT <itsupport@otpmobil.com>
- * @license  http://www.gnu.org/licenses/gpl-3.0.html  GNU GENERAL PUBLIC LICENSE (GPL V3.0)
- * @link     http://simplepartner.hu/online_fizetesi_szolgaltatas.html
- *
- */
 class SimpleBase
 {
     protected $merchantId;
@@ -32,8 +22,8 @@ class SimpleBase
     public $hashFields = [];
     public $deniedInputChars = ["'", "\\", "\""];
     public $defaultsData = [
-        'BASE_URL' => "https://secure.simplepay.hu/payment/", //LIVE system
-        'SANDBOX_URL' => "https://sandbox.simplepay.hu/payment/", //SANDBOX system
+        'BASE_URL' => "https://secure.simplepay.hu/payment/",
+        'SANDBOX_URL' => "https://sandbox.simplepay.hu/payment/",
         'LU_URL' => "order/lu.php",   //relative to BASE_URL
         'ALU_URL' => "order/alu.php", //relative to BASE_URL
         'IDN_URL' => "order/idn.php", //relative to BASE_URL
@@ -118,7 +108,7 @@ class SimpleBase
         return true;
     }
 
-    public function processConfig(array $config)
+    public function processConfig(array $config): void
     {
         foreach ($config as $externalKey => $value) {
             if (array_key_exists($externalKey, $this->propertyMapping)) {
