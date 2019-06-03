@@ -6,7 +6,7 @@ namespace Cheppers\OtpClient;
 
 use Psr\Log\LoggerInterface;
 
-class SimpleBase
+class Base
 {
     protected $merchantId;
     protected $secretKey;
@@ -19,6 +19,8 @@ class SimpleBase
     public $debug = false;
     public $logger = true;
     public $logPath = "log";
+    public $debugMessage = [];
+    public $errorMessage = [];
     public $hashFields = [];
     public $deniedInputChars = ["'", "\\", "\""];
     public $defaultsData = [
