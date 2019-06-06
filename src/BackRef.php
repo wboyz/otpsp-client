@@ -4,7 +4,6 @@ namespace Cheppers\OtpClient;
 
 class BackRef extends Transaction
 {
-    protected $backref;
     public $commMethod = 'backref';
     public $protocol;
     protected $request;
@@ -16,6 +15,7 @@ class BackRef extends Transaction
         "payrefno",
         "ctrl",
     ];
+
     public $backStatusArray = [
         'BACKREF_DATE' => 'N/A',
         'REFNOEXT' => 'N/A',
@@ -24,12 +24,14 @@ class BackRef extends Transaction
         'PAYMETHOD' => 'N/A',
         'RESULT' => false,
     ];
+
     public $successfulStatus = [
         "IN_PROGRESS",
         "PAYMENT_AUTHORIZED",
         "COMPLETE",
         "WAITING_PAYMENT",
-        ];
+    ];
+
     public $unsuccessfulStatus = [
         "CARD_NOTAUTHORIZED",
         "FRAUD",
@@ -60,24 +62,16 @@ class BackRef extends Transaction
     {
         $serializer = new Serializer();
 
-        if (isset(
-            $this->getData['ctrl']
-        ) &&
-            $this->getData['ctrl']
-            ===
-            $serializer->decode($this->request, $this->secretKey)) {
+        if (isset($this->getData['ctrl'])
+            && $this->getData['ctrl']
+            === $serializer->decode($this->request, $this->secretKey)
+        ) {
             return true;
         }
+
         return false;
     }
 
-    /**
-     * Check card authorization response
-     *
-     * 1. check ctrl
-     * 2. check RC & RT
-     * 3. check IOS status
-     */
     public function checkResponse(): bool
     {
         if (!isset($this->order_ref)) {
@@ -138,15 +132,11 @@ class BackRef extends Transaction
                     $this->backStatusArray['RESULT'] = true;
                     return true;
                 }
-                $this->backStatusArray['RESULT'] = false;
-                return false;
             }
             $this->backStatusArray['RESULT'] = false;
             return false;
-        } elseif (!isset($this->getData['RT'])) {
-            $this->backStatusArray['RESULT'] = false;
-            return false;
         }
+
         $this->backStatusArray['RESULT'] = false;
         return false;
     }

@@ -11,8 +11,6 @@ class Ios extends Transaction
     protected $iosOrderUrl = '';
     public $commMethod = 'ios';
     public $status = [];
-    public $errorMessage = [];
-    public $debugMessage = [];
 
     public function __construct(array $config, string $currency = '', string $orderNumber = 'N/A')
     {
@@ -58,8 +56,7 @@ class Ios extends Transaction
             if ($serializer->encode(
                 $this->flatArray($this->status, ["HASH"]),
                 $this->secretKey
-            ) ===
-                @$this->status['HASH']
+            ) === @$this->status['HASH']
             ) {
                 $valid = true;
             }
