@@ -19,6 +19,11 @@ class Communicator
      */
     public $response;
 
+    public function __construct()
+    {
+        $this->setClient(new Client());
+    }
+
     public function setClient(Client $client): void
     {
         $this->client = $client;
