@@ -15,11 +15,6 @@ class Communicator
     public $client;
 
     /**
-     * @var string
-     */
-    public $baseUri = 'https://sandbox.simplepay.hu/payment/';
-
-    /**
      * @var ResponseInterface
      */
     public $response;
@@ -29,31 +24,19 @@ class Communicator
         $this->client = $client;
     }
 
-    public function getBaseUri(): string
-    {
-        return $this->baseUri;
-    }
-
-    public function setBaseUri(string $value): void
-    {
-        $this->baseUri = $value;
-    }
-
     public function getResponse(): ResponseInterface
     {
         return $this->response;
     }
 
-
-    protected function sendPost(string $path, array $options = []): Communicator
+    public function sendPost(string $url, array $options = []): Communicator
     {
-        return $this->sendRequest('POST', $path, $options);
+        return $this->sendRequest('POST', $url, $options);
     }
 
-    public function sendRequest(string $method, string $path, array $options): Communicator
+    public function sendRequest(string $method, string $url, array $options): Communicator
     {
-        $uri = $this->getBaseUri() . "/$path";
-        $this->response = $this->client->request($method, $uri, $options);
+        $this->response = $this->client->request($method, $url, $options);
 
         return $this;
     }
