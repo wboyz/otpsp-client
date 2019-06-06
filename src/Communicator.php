@@ -45,7 +45,7 @@ class Communicator
     }
 
 
-    protected function sendPost(string $path, array $options = []): Communicator
+    public function sendPost(string $path, array $options = []): Communicator
     {
         return $this->sendRequest('POST', $path, $options);
     }
