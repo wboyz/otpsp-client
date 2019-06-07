@@ -9,11 +9,12 @@ use Psr\Http\Message\ResponseInterface;
 use Cheppers\OtpClient\Communicator;
 use Cheppers\OtpClient\LiveUpdate;
 
-class Transaction extends Communicator
+class Transaction extends Base
 {
     public function startRequest(string $url, array $data, string $secretKey)
     {
-        $this->setBaseUri($url);
+        $communicator = new Communicator();
+        $communicator->setBaseUri($url);
         $liveUpdate = new LiveUpdate();
         $liveUpdate->formData = [];
 
@@ -21,7 +22,7 @@ class Transaction extends Communicator
         $serializer = new Serializer();
 
         /** @var ResponseInterface $response */
-        $response = $this->sendPost('/path', [
+        $response = $communicator->sendPost('/path', [
             'form_params' => [
                 $serializer->encode($data, $secretKey),
             ],
