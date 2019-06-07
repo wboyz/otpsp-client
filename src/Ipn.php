@@ -4,6 +4,9 @@ namespace Cheppers\OtpClient;
 
 class Ipn extends Base
 {
+    /**
+     * @var array
+     */
     public $successfulStatus = [
         "PAYMENT_AUTHORIZED",
         "COMPLETE",
@@ -32,18 +35,9 @@ class Ipn extends Base
         }
 
         $serialize = new Serializer();
-
         $calculatedHashString = $serialize->encode($this->flatArray($this->postData, ['HASH']), $this->secretKey);
-        if ($calculatedHashString === $this->postData['HASH']) {
-            $validationResult = true;
-        } else {
-            $validationResult = false;
-        }
-        if ($validationResult) {
-            return true;
-        } else {
-            return false;
-        }
+
+        return $calculatedHashString === $this->postData['HASH'];
     }
 
     public function confirmReceived(): string
@@ -70,9 +64,6 @@ class Ipn extends Base
 
     protected function ipnPostDataCheck(): bool
     {
-        if (count($this->postData) < 1 || !array_key_exists('REFNOEXT', $this->postData)) {
-            return false;
-        }
-        return true;
+        return (count($this->postData) < 1 || !array_key_exists('REFNOEXT', $this->postData));
     }
 }
