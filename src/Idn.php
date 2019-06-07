@@ -68,6 +68,7 @@ class Idn extends Transaction
 
     public function requestIdn(array $data = [])
     {
+        $serializer = new Serializer();
         if (count($data) == 0) {
             return $this->nameData();
         }
@@ -76,10 +77,12 @@ class Idn extends Transaction
         $this->refnoext = $data['REFNOEXT'];
         unset($data['REFNOEXT']);
 
+        $data2 = [];
         foreach ($this->hashFields as $fieldKey) {
             $data2[$fieldKey] = $data[$fieldKey];
         }
-        $irnHash = $this->createHashString($data2);
+
+        $irnHash = $serializer->encode($data2, $this->secretKey);
         $data2['ORDER_HASH'] = $irnHash;
         $this->idnRequest = $data2;
         $this->logFunc("IDN", $this->idnRequest, $this->refnoext);
