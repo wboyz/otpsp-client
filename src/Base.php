@@ -15,12 +15,8 @@ class Base
     protected $hashData = [];
     protected $runMode = 'LIVE';
     protected $commMethod;
-    public $sdkVersion = 'SimplePay_PHP_SDK_1.0.7_171207';
-    public $debug = false;
     public $logger = true;
     public $logPath = "log";
-    public $debugMessage = [];
-    public $errorMessage = [];
     public $hashFields = [];
     public $deniedInputChars = ["'", "\\", "\""];
     public $defaultsData = [
@@ -52,15 +48,6 @@ class Base
         'CURL' => 'curl',
         'LOGGER' => 'logger',
         'LOG_PATH' => 'logPath',
-        'DEBUG_LIVEUPDATE_PAGE' => 'debugLiveUpdatePage',
-        'DEBUG_LIVEUPDATE' => 'debugLiveUpdate',
-        'DEBUG_BACKREF' => 'debugBackref',
-        'DEBUG_IPN' => 'debugIpn',
-        'DEBUG_IRN' => 'debugIrn',
-        'DEBUG_IDN' => 'debugIdn',
-        'DEBUG_IOS' => 'debugIos',
-        'DEBUG_ONECLICK' => 'debugOneClick',
-        'DEBUG_ALU' => 'debugAlu',
     ];
 
     public function merchantByCurrency(array $config, string $currency = ''): array
@@ -81,9 +68,6 @@ class Base
         return $config;
     }
 
-    /**
-     * Initial settings
-     */
     public function setup(array $config): bool
     {
         if (isset($config['SANDBOX'])) {
