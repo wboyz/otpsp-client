@@ -44,7 +44,7 @@ class Idn extends Transaction
         "REF_URL"        => ["type" => "single", "paramName" => "refUrl"],
     ];
 
-    public function __construct($config = array(), $currency = '')
+    public function __construct($config = [], $currency = '')
     {
         $config = $this->merchantByCurrency($config, $currency);
         $this->setup($config);
