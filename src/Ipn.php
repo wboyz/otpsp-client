@@ -16,7 +16,6 @@ class Ipn extends Base
 
     public function __construct(array $config, string $currency = '')
     {
-        $config = $this->merchantByCurrency($config, $currency);
         $this->setup($config);
         $this->commMethod = 'ipn';
     }
