@@ -28,6 +28,10 @@ class UrlParser
         unset($queryVariables[$variable]);
         $urlArray['query'] = http_build_query($queryVariables);
 
+        if (isset($urlArray['port'])) {
+            return $urlArray['scheme'] . '://' . $urlArray['host'] . ':'
+                . $urlArray['port'] . $urlArray['path'] . '?' . $urlArray['query'];
+        }
         return $urlArray['scheme'] . '://' . $urlArray['host'] . $urlArray['path'] . '?' . $urlArray['query'];
     }
 }
