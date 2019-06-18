@@ -1,4 +1,4 @@
-<?php
+
 
 namespace Cheppers\OtpClient;
 
@@ -22,7 +22,7 @@ class Ipn extends Base
 
     public function validateReceived(): bool
     {
-        if ($this->ipnPostDataCheck()) {
+        if (!$this->ipnPostDataCheck()) {
             return false;
         }
 
@@ -60,6 +60,6 @@ class Ipn extends Base
 
     protected function ipnPostDataCheck(): bool
     {
-        return (count($this->postData) > 1 && array_key_exists('REFNOEXT', $this->postData));
+        return (count($this->postData) >= 1 && array_key_exists('REFNOEXT', $this->postData));
     }
 }
