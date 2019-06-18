@@ -16,7 +16,6 @@ class Ipn extends Base
 
     public function __construct(array $config, string $currency = '')
     {
-        $config = $this->merchantByCurrency($config, $currency);
         $this->setup($config);
         $this->commMethod = 'ipn';
     }
@@ -45,8 +44,8 @@ class Ipn extends Base
 
         $serverDate = @date("YmdHis");
         $hashArray = [
-            $this->postData['IPN_PID'],
-            $this->postData['IPN_PNAME'],
+            $this->postData['IPN_PID'][0],
+            $this->postData['IPN_PNAME'][0],
             $this->postData['IPN_DATE'],
             $serverDate,
         ];
@@ -61,6 +60,6 @@ class Ipn extends Base
 
     protected function ipnPostDataCheck(): bool
     {
-        return (count($this->postData) < 1 || !array_key_exists('REFNOEXT', $this->postData));
+        return (count($this->postData) >= 1 && array_key_exists('REFNOEXT', $this->postData));
     }
 }
