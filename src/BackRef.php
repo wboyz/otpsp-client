@@ -53,8 +53,7 @@ class BackRef extends Transaction
         array $config,
         Serializer $serializer,
         string $currency = ''
-    )
-    {
+    ) {
         $config = $this->merchantByCurrency($config, $currency);
         $this->iosConfig = $config;
         $this->setup($config);
