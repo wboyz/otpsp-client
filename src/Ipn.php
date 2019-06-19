@@ -65,7 +65,7 @@ class Ipn extends Base
             $serverDate,
         ];
 
-        $serialize = new Serializer();
+        $serialize = $this->getSerializer();
 
         $hash = $serialize->encode($hashArray, $this->secretKey);
         $string = "<EPAYMENT>" . $serverDate . "|" . $hash . "</EPAYMENT>";

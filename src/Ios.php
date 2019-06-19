@@ -12,6 +12,11 @@ class Ios extends Transaction
     public $commMethod = 'ios';
     public $status = [];
 
+    /**
+     * @var Serializer
+     */
+    protected $serializer;
+
     public function __construct(array $config, string $currency = '', string $orderNumber = 'N/A')
     {
         $config = $this->merchantByCurrency($config, $currency);
@@ -21,9 +26,19 @@ class Ios extends Transaction
         $this->runIos();
     }
 
+    public function getSerializer(): Serializer
+    {
+        return $this->serializer;
+    }
+
+    public function setSerializer(Serializer $serializer): void
+    {
+        $this->serializer = $serializer;
+    }
+
     public function runIos(): void
     {
-        $serializer = new Serializer();
+        $serializer = $this->getSerializer();
         if ($this->merchantId === '' || $this->orderNumber === 'N/A') {
             return;
         }
