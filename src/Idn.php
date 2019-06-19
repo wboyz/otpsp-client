@@ -44,6 +44,21 @@ class Idn extends Transaction
         "REF_URL"        => ["type" => "single", "paramName" => "refUrl"],
     ];
 
+    /**
+     * @var Serializer
+     */
+    protected $serializer;
+
+    public function getSerializer(): Serializer
+    {
+        return $this->serializer;
+    }
+
+    public function setSerializer(Serializer $serializer): void
+    {
+        $this->serializer = $serializer;
+    }
+
     public function __construct($config = [], $currency = '')
     {
         $config = $this->merchantByCurrency($config, $currency);
@@ -68,7 +83,7 @@ class Idn extends Transaction
 
     public function requestIdn(array $data = [])
     {
-        $serializer = new Serializer();
+        $serializer = $this->getSerializer();
         if (count($data) == 0) {
             return $this->nameData();
         }
