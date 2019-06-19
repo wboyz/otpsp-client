@@ -12,16 +12,16 @@ class Communicator
     /**
      * @var Client
      */
-    public $client;
+    protected $client;
 
     /**
      * @var ResponseInterface
      */
     public $response;
 
-    public function __construct()
+    public function getClient(): Client
     {
-        $this->setClient(new Client());
+        return $this->client;
     }
 
     public function setClient(Client $client): void
