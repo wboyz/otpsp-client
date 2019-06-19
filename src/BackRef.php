@@ -49,13 +49,10 @@ class BackRef extends Transaction
      */
     protected $ios;
 
-    public function __construct(
+    public function setupBackref(
         array $config,
-        Serializer $serializer,
-        string $currency = ''
-    )
-    {
-        $config = $this->merchantByCurrency($config, $currency);
+        Serializer $serializer
+    ) {
         $this->iosConfig = $config;
         $this->setup($config);
         $this->createRequestUri();
