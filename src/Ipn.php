@@ -14,6 +14,21 @@ class Ipn extends Base
         "PAYMENT_RECEIVED",
     ];
 
+    /**
+     * @var Serializer
+     */
+    protected $serializer;
+
+    public function getSerializer(): Serializer
+    {
+        return $this->serializer;
+    }
+
+    public function setSerializer(Serializer $serializer): void
+    {
+        $this->serializer = $serializer;
+    }
+
     public function setConfig(array $config): void
     {
         $this->setup($config);
@@ -30,7 +45,7 @@ class Ipn extends Base
             return false;
         }
 
-        $serialize = new Serializer();
+        $serialize = $this->getSerializer();
         $calculatedHashString = $serialize->encode($this->flatArray($this->postData, ['HASH']), $this->secretKey);
 
         return $calculatedHashString === $this->postData['HASH'];
