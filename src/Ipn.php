@@ -14,7 +14,7 @@ class Ipn extends Base
         "PAYMENT_RECEIVED",
     ];
 
-    public function __construct(array $config, string $currency = '')
+    public function setConfig(array $config): void
     {
         $this->setup($config);
         $this->commMethod = 'ipn';
