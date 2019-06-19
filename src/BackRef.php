@@ -48,8 +48,8 @@ class BackRef extends Transaction
      * @var Ios
      */
     protected $ios;
-
-    public function __construct(
+    
+    public function setupBackRef(
         array $config,
         Serializer $serializer,
         string $currency = ''
