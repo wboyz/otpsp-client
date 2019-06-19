@@ -39,7 +39,21 @@ class BackRef extends Transaction
         "TIMEOUT",
     ];
 
-    public function __construct(array $config, string $currency = '')
+    /**
+     * @var Serializer
+     */
+    protected $serializer;
+
+    /**
+     * @var Ios
+     */
+    protected $ios;
+
+    public function __construct(
+        array $config,
+        Serializer $serializer,
+        string $currency = ''
+    )
     {
         $config = $this->merchantByCurrency($config, $currency);
         $this->iosConfig = $config;
@@ -48,9 +62,10 @@ class BackRef extends Transaction
         $this->backStatusArray['BACKREF_DATE'] = (isset($this->getData['date'])) ? $this->getData['date'] : 'N/A';
         $this->backStatusArray['REFNOEXT'] = (isset($this->getData['order_ref'])) ? $this->getData['order_ref'] : 'N/A';
         $this->backStatusArray['PAYREFNO'] = (isset($this->getData['payrefno'])) ? $this->getData['payrefno'] : 'N/A';
+        $this->serializer = $serializer;
     }
 
-    protected function createRequestUri(): void
+    public function createRequestUri(): void
     {
         if ($this->protocol == '') {
             $this->protocol = "http";
@@ -58,7 +73,12 @@ class BackRef extends Transaction
         $this->request = $this->protocol . '://' . $this->serverData['HTTP_HOST'] . $this->serverData['REQUEST_URI'];
     }
 
-    protected function checkCtrl(): bool
+    public function isBackRefSuccess(string $returnCode): bool
+    {
+        return $returnCode === '000' || $returnCode === '001';
+    }
+
+    public function checkCtrl(): bool
     {
         $serializer = new Serializer();
 
