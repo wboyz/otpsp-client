@@ -49,6 +49,26 @@ class BackRef extends Transaction
      */
     protected $ios;
 
+    public function getSerializer(): Serializer
+    {
+        return $this->serializer;
+    }
+
+    public function setSerializer(Serializer $serializer): void
+    {
+        $this->serializer = $serializer;
+    }
+
+    public function getIos(): Ios
+    {
+        return $this->ios;
+    }
+
+    public function setIos(Ios $ios): void
+    {
+        $this->ios = $ios;
+    }
+
     public function setupBackRef(
         array $config,
         Serializer $serializer,
@@ -79,7 +99,7 @@ class BackRef extends Transaction
 
     public function checkCtrl(): bool
     {
-        $serializer = new Serializer();
+        $serializer = $this->getSerializer();
 
         if (isset($this->getData['ctrl'])
             && $this->getData['ctrl']
@@ -101,7 +121,7 @@ class BackRef extends Transaction
             return false;
         }
 
-        $ios = new Ios($this->iosConfig, $this->getData['order_currency'], $this->order_ref);
+        $ios = $this->getIos();
 
         if (is_object($ios)) {
             $this->checkIOSStatus($ios);
