@@ -27,7 +27,7 @@ class Transaction extends Base
                 $serializer->encode($data, $secretKey),
             ],
         ]);
-        var_dump($response);
+        
         return $response->getStatusCode();
     }
 }
