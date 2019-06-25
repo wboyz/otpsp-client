@@ -50,6 +50,11 @@ class Base
         'LOG_PATH' => 'logPath',
     ];
 
+    public $supportedLangCodes = [
+        'CZ', 'DE', 'EN', 'ES', 'IT',
+        'HR', 'HU', 'PL', 'RO', 'SK',
+    ];
+    
     public function merchantByCurrency(array $config, string $currency = ''): array
     {
 
