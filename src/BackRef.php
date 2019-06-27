@@ -2,7 +2,7 @@
 
 namespace Cheppers\OtpClient;
 
-class BackRef extends Transaction
+class BackRef
 {
     public $commMethod = 'backref';
     public $protocol;

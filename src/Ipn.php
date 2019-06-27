@@ -2,7 +2,7 @@
 
 namespace Cheppers\OtpClient;
 
-class Ipn extends Base
+class Ipn
 {
     /**
      * @var array
