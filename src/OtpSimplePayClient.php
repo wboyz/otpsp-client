@@ -7,11 +7,16 @@ namespace Cheppers\OtpClient;
 use Cheppers\OtpClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpClient\DataType\InstantOrderStatus;
 use Cheppers\OtpClient\DataType\InstantRefundNotification;
+use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
 
-class OtpSimplePayClient
+class OtpSimplePayClient implements LoggerAwareInterface
 {
+    use LoggerAwareTrait;
 
     /**
      * @var \Cheppers\OtpClient\Serializer|null
@@ -106,10 +111,11 @@ class OtpSimplePayClient
      */
     protected $ipnPostData = [];
 
-    public function __construct(ClientInterface $client, Serializer $serializer)
+    public function __construct(ClientInterface $client, Serializer $serializer, LoggerInterface $logger)
     {
         $this->client = $client;
         $this->serializer = $serializer;
+        $this->setLogger($logger);
     }
 
     public function instantDeliveryNotificationPost(
@@ -342,9 +348,9 @@ class OtpSimplePayClient
         return $calculatedHash === $this->ipnPostData['HASH'];
     }
 
-    protected function instantPaymentNotificationConfirmReceived(): string
+    protected function getInstantPaymentNotificationResponse(): array
     {
-        $serverDate = @date('YmdHis');
+        $serverDate = date('YmdHis');
         $hashArray = [
             $this->ipnPostData['IPN_PID'][0],
             $this->ipnPostData['IPN_PNAME'][0],
@@ -355,6 +361,10 @@ class OtpSimplePayClient
         $hash = $this->serializer->encode($hashArray, $this->secretKey);
         $responseBody = '<EPAYMENT>' . $serverDate . '|' . $hash . '</EPAYMENT>';
 
-        return $responseBody;
+        return [
+            'headers' => [],
+            'body' => $responseBody,
+            'statusCode' => 200,
+        ];
     }
 }
