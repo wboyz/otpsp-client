@@ -31,5 +31,4 @@ class Base
 
         return $self;
     }
-
 }

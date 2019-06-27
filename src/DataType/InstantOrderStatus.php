@@ -31,5 +31,4 @@ class InstantOrderStatus extends Base
      * @var string
      */
     public $payMethod = '';
-
 }

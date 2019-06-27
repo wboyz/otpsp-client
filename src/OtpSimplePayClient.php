@@ -105,7 +105,8 @@ class OtpSimplePayClient
         $this->serializer = $serializer;
     }
 
-    public function instantOrderStatusPost(string $refNoExt): ?InstantOrderStatus {
+    public function instantOrderStatusPost(string $refNoExt): ?InstantOrderStatus
+    {
         $header = [
             'Content-type' => 'application/x-www-form-urlencoded',
         ];
@@ -179,5 +180,4 @@ class OtpSimplePayClient
     {
         return $this->getBaseUri() . "/$path";
     }
-
 }
