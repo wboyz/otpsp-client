@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Cheppers\OtpClient\Tests\Unit;
 
 use Cheppers\OtpClient\DataType\InstantOrderStatus;
+use Cheppers\OtpClient\DataType\InstantRefundNotification;
 use Cheppers\OtpClient\OtpSimplePayClient;
 use Cheppers\OtpClient\Serializer;
 use GuzzleHttp\Client;
@@ -185,5 +186,84 @@ class OtpSimplePayClientTest extends TestCase
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantOrderStatusPost($refNoExt);
+    }
+
+    public function casesInstantRefundNotificationPost()
+    {
+        return [
+            'basic' => [
+                InstantRefundNotification::__set_state([
+                    'ORDER_REF' => 'myOrderRef',
+                    'STATUS_CODE' => 'myStatusCode',
+                    'STATUS_NAME' => 'myStatusName',
+                    'IRN_DATE' => 'myIrnDate',
+                ]),
+                '<epayment>myOrderRef|myStatusCode|myStatusName|myIrnDate|myHash</epayment>',
+                'foo',
+                'var',
+                'bar',
+                'baz',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesInstantRefundNotificationPost
+     */
+    public function testInstantRefundNotificationPost(
+        ?InstantRefundNotification $expected,
+        string $responseBody,
+        string $orderRef,
+        string $orderAmount,
+        string $orderCurrency,
+        string $refundAmount
+    ) {
+        $container = [];
+        $history = Middleware::history($container);
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/xml'],
+                $responseBody
+            ),
+            new RequestException('Error Communicating with Server', new Request('GET', 'order/irn.php'))
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($history);
+        $client = new Client([
+            'handler' => $handlerStack,
+        ]);
+
+        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        $serializer = $this
+            ->getMockBuilder(Serializer::class)
+            ->getMock();
+        $serializer
+            ->expects($this->any())
+            ->method('encode')
+            ->willReturn('myHash');
+
+        $actual = (new OtpSimplePayClient($client, $serializer))
+            ->setSecretKey('')
+            ->setMerchantId('')
+            ->instantRefundNotificationPost(
+                $orderRef,
+                $orderAmount,
+                $orderCurrency,
+                $refundAmount
+            );
+
+        static::assertEquals($expected, $actual);
+
+        /** @var \GuzzleHttp\Psr7\Request $request */
+        $request = $container[0]['request'];
+        static::assertEquals(1, count($container));
+        static::assertEquals('POST', $request->getMethod());
+        static::assertEquals(['application/x-www-form-urlencoded'], $request->getHeader('Content-type'));
+        static::assertEquals(['sandbox.simplepay.hu'], $request->getHeader('Host'));
+        static::assertEquals(
+            'https://sandbox.simplepay.hu/payment/order/irn.php',
+            (string) $request->getUri()
+        );
     }
 }
