@@ -101,6 +101,11 @@ class OtpSimplePayClient
         return $this;
     }
 
+    /**
+     * @var array
+     */
+    protected $ipnPostData = [];
+
     public function __construct(ClientInterface $client, Serializer $serializer)
     {
         $this->client = $client;
@@ -323,5 +328,33 @@ class OtpSimplePayClient
             }
         }
         return $return;
+    }
+
+    protected function instantPaymentNotificationValidate(string $requestBody): bool
+    {
+        parse_str($requestBody, $this->ipnPostData);
+        if (count($this->ipnPostData) < 1 || !array_key_exists('REFNOEXT', $this->ipnPostData)) {
+            return false;
+        }
+
+        $calculatedHash = $this->serializer->encode($this->flatArray($this->ipnPostData, ['HASH']), $this->secretKey);
+
+        return $calculatedHash === $this->ipnPostData['HASH'];
+    }
+
+    protected function instantPaymentNotificationConfirmReceived(): string
+    {
+        $serverDate = @date("YmdHis");
+        $hashArray = [
+            $this->ipnPostData['IPN_PID'][0],
+            $this->ipnPostData['IPN_PNAME'][0],
+            $this->ipnPostData['IPN_DATE'],
+            $serverDate,
+        ];
+
+        $hash = $this->serializer->encode($hashArray, $this->secretKey);
+        $responseBody = '<EPAYMENT>' . $serverDate . '|' . $hash . '</EPAYMENT>';
+
+        return $responseBody;
     }
 }
