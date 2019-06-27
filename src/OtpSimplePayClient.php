@@ -344,7 +344,7 @@ class OtpSimplePayClient
 
     protected function instantPaymentNotificationConfirmReceived(): string
     {
-        $serverDate = @date("YmdHis");
+        $serverDate = @date('YmdHis');
         $hashArray = [
             $this->ipnPostData['IPN_PID'][0],
             $this->ipnPostData['IPN_PNAME'][0],
