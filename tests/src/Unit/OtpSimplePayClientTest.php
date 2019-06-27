@@ -46,13 +46,25 @@ class OtpSimplePayClientTest extends TestCase
                 ]),
                 'foo',
             ],
+            'not found' => [
+                null,
+                implode(PHP_EOL, [
+                    '<?xml version="1.0" encoding="UTF-8"?>',
+                    '<Order>',
+                    '<ERROR_CODE>5011</ERROR_CODE>',
+                    '<HASH>myHash</HASH>',
+                    '<ORDER_STATUS>NOT_FOUND</ORDER_STATUS>',
+                    '</Order>'
+                ]),
+                'foo',
+            ],
         ];
     }
 
     /**
      * @dataProvider casesInstantOrderStatusPost
      */
-    public function testInstantOrderStatusPost(InstantOrderStatus $expected, string $responseBody, string $refNoExt)
+    public function testInstantOrderStatusPost(?InstantOrderStatus $expected, string $responseBody, string $refNoExt)
     {
         $container = [];
         $history = Middleware::history($container);
@@ -86,38 +98,22 @@ class OtpSimplePayClientTest extends TestCase
 
         static::assertEquals($expected, $actual);
 
-        ///** @var Request $request */
-        //$request = $container[0]['request'];
-        //static::assertEquals(1, count($container));
-        //static::assertEquals('GET', $request->getMethod());
-        //static::assertEquals(['application/vnd.gathercontent.v0.5+json'], $request->getHeader('Accept'));
-        //static::assertEquals(['api.example.com'], $request->getHeader('Host'));
-        //static::assertEquals(
-        //    "{$this->gcClientOptions['baseUri']}/me",
-        //    (string) $request->getUri()
-        //);
+        /** @var \GuzzleHttp\Psr7\Request $request */
+        $request = $container[0]['request'];
+        static::assertEquals(1, count($container));
+        static::assertEquals('POST', $request->getMethod());
+        static::assertEquals(['application/x-www-form-urlencoded'], $request->getHeader('Content-type'));
+        static::assertEquals(['sandbox.simplepay.hu'], $request->getHeader('Host'));
+        static::assertEquals(
+            'https://sandbox.simplepay.hu/payment/order/ios.php',
+            (string) $request->getUri()
+        );
     }
 
     public function casesInstantOrderStatusPostError()
     {
         return [
-            'not found' => [
-                [
-                    'class' => \Exception::class,
-                    'message' => 'NOT_FOUND',
-                    'code' => 5011,
-                ],
-                implode(PHP_EOL, [
-                    '<?xml version="1.0" encoding="UTF-8"?>',
-                    '<Order>',
-                    '<ERROR_CODE>5011</ERROR_CODE>',
-                    '<HASH>myHash</HASH>',
-                    '<ORDER_STATUS>NOT_FOUND</ORDER_STATUS>',
-                    '</Order>'
-                ]),
-                'foo',
-            ],
-            'hash missmatch' => [
+            'hash mismatch' => [
                 [
                     'class' => \Exception::class,
                     'message' => '@todo',
@@ -129,6 +125,22 @@ class OtpSimplePayClientTest extends TestCase
                     '<ERROR_CODE>5011</ERROR_CODE>',
                     '<HASH>something else</HASH>',
                     '<ORDER_STATUS>NOT_FOUND</ORDER_STATUS>',
+                    '</Order>'
+                ]),
+                'foo',
+            ],
+            'unknown' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => 'myOrderStatus',
+                    'code' => 42,
+                ],
+                implode(PHP_EOL, [
+                    '<?xml version="1.0" encoding="UTF-8"?>',
+                    '<Order>',
+                    '<ERROR_CODE>42</ERROR_CODE>',
+                    '<HASH>myHash</HASH>',
+                    '<ORDER_STATUS>myOrderStatus</ORDER_STATUS>',
                     '</Order>'
                 ]),
                 'foo',

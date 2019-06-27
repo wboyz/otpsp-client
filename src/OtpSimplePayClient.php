@@ -105,7 +105,7 @@ class OtpSimplePayClient
         $this->serializer = $serializer;
     }
 
-    public function instantOrderStatusPost(string $refNoExt): InstantOrderStatus {
+    public function instantOrderStatusPost(string $refNoExt): ?InstantOrderStatus {
         $header = [
             'Content-type' => 'application/x-www-form-urlencoded',
         ];
@@ -133,7 +133,7 @@ class OtpSimplePayClient
         }
 
         $xml = (string) $response->getBody();
-        $values = $this->getBodyValues($xml);
+        $values = $this->parseResponseBody($xml);
         // @todo Check HASH key.
         $hash = $values['HASH'];
         unset($values['HASH']);
@@ -144,6 +144,12 @@ class OtpSimplePayClient
         }
 
         if (array_key_exists('ERROR_CODE', $values)) {
+            switch ($values['ERROR_CODE']) {
+                case '5011':
+                    // Not found.
+                    return null;
+            }
+
             throw new \Exception(
                 $values['ORDER_STATUS'] ?? 'Unknown error',
                 (int) $values['ERROR_CODE']
@@ -153,7 +159,7 @@ class OtpSimplePayClient
         return InstantOrderStatus::__set_state($values);
     }
 
-    protected function getBodyValues(string $xml): array
+    protected function parseResponseBody(string $xml): array
     {
         $doc = new \DOMDocument();
         $doc->loadXML($xml);
