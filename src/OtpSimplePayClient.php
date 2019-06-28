@@ -306,8 +306,8 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $doc = new \DOMDocument();
         $doc->loadXML($xml);
         $rootNode = $doc->childNodes->item(0);
-
         $values = explode('|', $rootNode->nodeValue);
+
         return array_combine($ePayment, $values);
     }
 

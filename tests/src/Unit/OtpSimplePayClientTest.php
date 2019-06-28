@@ -16,6 +16,7 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 /**
  * @covers \Cheppers\OtpClient\OtpSimplePayClient
@@ -92,7 +93,8 @@ class OtpSimplePayClientTest extends TestCase
             ->method('encode')
             ->willReturn('myHash');
 
-        $actual = (new OtpSimplePayClient($client, $serializer))
+        $logger = new NullLogger();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger))
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantOrderStatusPost($refNoExt);
@@ -182,7 +184,8 @@ class OtpSimplePayClientTest extends TestCase
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        (new OtpSimplePayClient($client, $serializer))
+        $logger = new NullLogger();
+        (new OtpSimplePayClient($client, $serializer, $logger))
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantOrderStatusPost($refNoExt);
@@ -194,11 +197,11 @@ class OtpSimplePayClientTest extends TestCase
             'basic' => [
                 InstantRefundNotification::__set_state([
                     'ORDER_REF' => 'myOrderRef',
-                    'STATUS_CODE' => 'myStatusCode',
+                    'STATUS_CODE' => '1',
                     'STATUS_NAME' => 'myStatusName',
                     'IRN_DATE' => 'myIrnDate',
                 ]),
-                '<epayment>myOrderRef|myStatusCode|myStatusName|myIrnDate|myHash</epayment>',
+                '<epayment>myOrderRef|1|myStatusName|myIrnDate|myHash</epayment>',
                 'foo',
                 'var',
                 'bar',
@@ -243,7 +246,8 @@ class OtpSimplePayClientTest extends TestCase
             ->method('encode')
             ->willReturn('myHash');
 
-        $actual = (new OtpSimplePayClient($client, $serializer))
+        $logger = new NullLogger();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger))
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantRefundNotificationPost(
@@ -265,5 +269,69 @@ class OtpSimplePayClientTest extends TestCase
             'https://sandbox.simplepay.hu/payment/order/irn.php',
             (string) $request->getUri()
         );
+    }
+
+    public function casesInstantRefundNotificationPostError()
+    {
+        return [
+            'hash mismatch' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => '@todo',
+                    'code' => 1,
+                ],
+                '<epayment>myOrderRef|1|myStatusName|myIrnDate|myOtherHash</epayment>',
+                'foo',
+                'var',
+                'bar',
+                'baz',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesInstantRefundNotificationPostError
+     */
+    public function testInstantRefundNotificationPostError(
+        array $expected,
+        string $responseBody,
+        string $orderRef,
+        string $orderAmount,
+        string $orderCurrency,
+        string $refundAmount
+    ) {
+        $container = [];
+        $history = Middleware::history($container);
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/xml'],
+                $responseBody
+            ),
+            new RequestException('Error Communicating with Server', new Request('GET', 'order/ios.php'))
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($history);
+        $client = new Client([
+            'handler' => $handlerStack,
+        ]);
+
+        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        $serializer = $this
+            ->getMockBuilder(Serializer::class)
+            ->getMock();
+        $serializer
+            ->expects($this->any())
+            ->method('encode')
+            ->willReturn('myHash');
+
+        static::expectException($expected['class']);
+        static::expectExceptionMessage($expected['message']);
+        static::expectExceptionCode($expected['code']);
+        $logger = new NullLogger();
+        (new OtpSimplePayClient($client, $serializer, $logger))
+            ->setSecretKey('')
+            ->setMerchantId('')
+            ->instantRefundNotificationPost($orderRef, $orderAmount, $orderCurrency, $refundAmount);
     }
 }
