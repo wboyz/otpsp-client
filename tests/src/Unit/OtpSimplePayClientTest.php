@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpClient\Tests\Unit;
 
+use Cheppers\OtpClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpClient\DataType\InstantOrderStatus;
 use Cheppers\OtpClient\DataType\InstantRefundNotification;
 use Cheppers\OtpClient\OtpSimplePayClient;
@@ -286,6 +287,18 @@ class OtpSimplePayClientTest extends TestCase
                 'bar',
                 'baz',
             ],
+            'wrong status code' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => '@todo',
+                    'code' => 1,
+                ],
+                '<epayment>myOrderRef|23|myStatusName|myIrnDate|myHash</epayment>',
+                'foo',
+                'var',
+                'bar',
+                'baz',
+            ],
         ];
     }
 
@@ -308,7 +321,7 @@ class OtpSimplePayClientTest extends TestCase
                 ['Content-Type' => 'application/xml'],
                 $responseBody
             ),
-            new RequestException('Error Communicating with Server', new Request('GET', 'order/ios.php'))
+            new RequestException('Error Communicating with Server', new Request('GET', 'order/irn.php'))
         ]);
         $handlerStack = HandlerStack::create($mock);
         $handlerStack->push($history);
@@ -333,5 +346,157 @@ class OtpSimplePayClientTest extends TestCase
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantRefundNotificationPost($orderRef, $orderAmount, $orderCurrency, $refundAmount);
+    }
+
+    public function casesInstantDeliveryNotificationPost()
+    {
+        return [
+            'basic' => [
+                InstantDeliveryNotification::__set_state([
+                    'ORDER_REF' => 'myOrderRef',
+                    'STATUS_CODE' => '1',
+                    'STATUS_NAME' => 'myStatusName',
+                    'IDN_DATE' => 'myIdnDate',
+                ]),
+                '<epayment>myOrderRef|1|myStatusName|myIdnDate|myHash</epayment>',
+                'foo',
+                'var',
+                'bar',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesInstantDeliveryNotificationPost
+     */
+    public function testInstantDeliveryNotificationPost(
+        ?InstantDeliveryNotification $expected,
+        string $responseBody,
+        string $orderRef,
+        string $orderAmount,
+        string $orderCurrency
+    ) {
+        $container = [];
+        $history = Middleware::history($container);
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/xml'],
+                $responseBody
+            ),
+            new RequestException('Error Communicating with Server', new Request('GET', 'order/idn.php'))
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($history);
+        $client = new Client([
+            'handler' => $handlerStack,
+        ]);
+
+        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        $serializer = $this
+            ->getMockBuilder(Serializer::class)
+            ->getMock();
+        $serializer
+            ->expects($this->any())
+            ->method('encode')
+            ->willReturn('myHash');
+
+        $logger = new NullLogger();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger))
+            ->setSecretKey('')
+            ->setMerchantId('')
+            ->instantDeliveryNotificationPost(
+                $orderRef,
+                $orderAmount,
+                $orderCurrency
+            );
+
+        static::assertEquals($expected, $actual);
+
+        /** @var \GuzzleHttp\Psr7\Request $request */
+        $request = $container[0]['request'];
+        static::assertEquals(1, count($container));
+        static::assertEquals('POST', $request->getMethod());
+        static::assertEquals(['application/x-www-form-urlencoded'], $request->getHeader('Content-type'));
+        static::assertEquals(['sandbox.simplepay.hu'], $request->getHeader('Host'));
+        static::assertEquals(
+            'https://sandbox.simplepay.hu/payment/order/idn.php',
+            (string) $request->getUri()
+        );
+    }
+
+    public function casesInstantDeliveryNotificationPostError()
+    {
+        return [
+            'hash mismatch' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => '@todo',
+                    'code' => 1,
+                ],
+                '<epayment>myOrderRef|1|myStatusName|myIdnDate|myOtherHash</epayment>',
+                'foo',
+                'var',
+                'bar',
+                'baz',
+            ],
+            'wrong status code' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => '@todo',
+                    'code' => 1,
+                ],
+                '<epayment>myOrderRef|23|myStatusName|myIdnDate|myHash</epayment>',
+                'foo',
+                'var',
+                'bar',
+                'baz',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesInstantDeliveryNotificationPostError
+     */
+    public function testInstantDeliveryNotificationPostError(
+        array $expected,
+        string $responseBody,
+        string $orderRef,
+        string $orderAmount,
+        string $orderCurrency
+    ) {
+        $container = [];
+        $history = Middleware::history($container);
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/xml'],
+                $responseBody
+            ),
+            new RequestException('Error Communicating with Server', new Request('GET', 'order/idn.php'))
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($history);
+        $client = new Client([
+            'handler' => $handlerStack,
+        ]);
+
+        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        $serializer = $this
+            ->getMockBuilder(Serializer::class)
+            ->getMock();
+        $serializer
+            ->expects($this->any())
+            ->method('encode')
+            ->willReturn('myHash');
+
+        static::expectException($expected['class']);
+        static::expectExceptionMessage($expected['message']);
+        static::expectExceptionCode($expected['code']);
+        $logger = new NullLogger();
+        (new OtpSimplePayClient($client, $serializer, $logger))
+            ->setSecretKey('')
+            ->setMerchantId('')
+            ->instantDeliveryNotificationPost($orderRef, $orderAmount, $orderCurrency);
     }
 }

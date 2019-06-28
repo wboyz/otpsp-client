@@ -122,7 +122,8 @@ class OtpSimplePayClient implements LoggerAwareInterface
         string $orderRef,
         string $orderAmount,
         string $orderCurrency
-    ) {
+    ): ?InstantDeliveryNotification
+    {
         $header = [
             'Content-type' => 'application/x-www-form-urlencoded',
         ];
@@ -132,7 +133,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'ORDER_REF' => $orderRef,
             'ORDER_AMOUNT' => $orderAmount,
             'ORDER_CURRENCY' => $orderCurrency,
-            'IRN_DATE' => date('Y-m-d H:i:s'),
+            'IDN_DATE' => date('Y-m-d H:i:s'),
         ];
 
         $body['ORDER_HASH'] = $this->serializer->encode(array_values($body), $this->getSecretKey());
@@ -152,7 +153,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         }
 
         $xml = (string) $response->getBody();
-        $values = $this->parseResponseString($xml);
+        $values = $this->parseResponseString($xml, 'IDN_DATE');
 
         $hash = $values['HASH'];
         unset($values['HASH']);
@@ -174,7 +175,8 @@ class OtpSimplePayClient implements LoggerAwareInterface
         string $orderAmount,
         string $orderCurrency,
         string $refundAmount
-    ) {
+    ): ?InstantRefundNotification
+    {
         $header = [
             'Content-type' => 'application/x-www-form-urlencoded',
         ];
@@ -205,7 +207,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         }
 
         $xml = (string) $response->getBody();
-        $values = $this->parseResponseString($xml);
+        $values = $this->parseResponseString($xml, 'IRN_DATE');
 
         $hash = $values['HASH'];
         unset($values['HASH']);
@@ -221,7 +223,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
         return InstantRefundNotification::__set_state($values);
     }
-    
+
     public function instantOrderStatusPost(string $refNoExt): ?InstantOrderStatus
     {
         $header = [
@@ -293,13 +295,13 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $values;
     }
 
-    protected function parseResponseString(string $xml)
+    protected function parseResponseString(string $xml, string $dateKey)
     {
         $ePayment = [
             'ORDER_REF',
             'STATUS_CODE',
             'STATUS_NAME',
-            'IRN_DATE',
+            $dateKey,
             'HASH',
         ];
 
