@@ -122,8 +122,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         string $orderRef,
         string $orderAmount,
         string $orderCurrency
-    ): ?InstantDeliveryNotification
-    {
+    ): ?InstantDeliveryNotification {
         $header = [
             'Content-type' => 'application/x-www-form-urlencoded',
         ];
@@ -170,8 +169,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         string $orderAmount,
         string $orderCurrency,
         string $refundAmount
-    ): ?InstantRefundNotification
-    {
+    ): ?InstantRefundNotification {
         $header = [
             'Content-type' => 'application/x-www-form-urlencoded',
         ];
