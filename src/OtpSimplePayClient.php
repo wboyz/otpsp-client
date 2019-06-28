@@ -158,10 +158,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $hash = $values['HASH'];
         unset($values['HASH']);
 
-        $isValid = $hash === $this->serializer->encode($values, $this->getSecretKey());
-        if (!$isValid) {
-            throw new \Exception('@todo', 1);
-        }
+        $this->validateHash($hash, $values);
 
         if ($values['STATUS_CODE'] !== '1') {
             throw new \Exception('@todo', 1);
@@ -212,10 +209,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $hash = $values['HASH'];
         unset($values['HASH']);
 
-        $isValid = $hash === $this->serializer->encode($values, $this->getSecretKey());
-        if (!$isValid) {
-            throw new \Exception('@todo', 1);
-        }
+        $this->validateHash($hash, $values);
 
         if ($values['STATUS_CODE'] !== '1') {
             throw new \Exception('@todo', 1);
@@ -257,10 +251,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $hash = $values['HASH'];
         unset($values['HASH']);
 
-        $isValid = $hash === $this->serializer->encode($values, $this->getSecretKey());
-        if (!$isValid) {
-            throw new \Exception('@todo', 1);
-        }
+        $this->validateHash($hash, $values);
 
         if (array_key_exists('ERROR_CODE', $values)) {
             switch ($values['ERROR_CODE']) {
@@ -367,5 +358,14 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'body' => $responseBody,
             'statusCode' => 200,
         ];
+    }
+
+    public function validateHash($hash, $values)
+    {
+        $isValid = $hash === $this->serializer->encode($values, $this->getSecretKey());
+
+        if (!$isValid) {
+            throw new \Exception('Invalid hash', 1);
+        }
     }
 }

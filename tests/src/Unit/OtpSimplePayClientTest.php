@@ -120,7 +120,7 @@ class OtpSimplePayClientTest extends TestCase
             'hash mismatch' => [
                 [
                     'class' => \Exception::class,
-                    'message' => '@todo',
+                    'message' => 'Invalid hash',
                     'code' => 1,
                 ],
                 implode(PHP_EOL, [
@@ -278,7 +278,7 @@ class OtpSimplePayClientTest extends TestCase
             'hash mismatch' => [
                 [
                     'class' => \Exception::class,
-                    'message' => '@todo',
+                    'message' => 'Invalid hash',
                     'code' => 1,
                 ],
                 '<epayment>myOrderRef|1|myStatusName|myIrnDate|myOtherHash</epayment>',
@@ -431,7 +431,7 @@ class OtpSimplePayClientTest extends TestCase
             'hash mismatch' => [
                 [
                     'class' => \Exception::class,
-                    'message' => '@todo',
+                    'message' => 'Invalid hash',
                     'code' => 1,
                 ],
                 '<epayment>myOrderRef|1|myStatusName|myIdnDate|myOtherHash</epayment>',
