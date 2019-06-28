@@ -148,9 +148,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $response = $this->client->send($request);
 
         $statusCode = $response->getStatusCode();
-        if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \Exception('@todo', 1);
-        }
+        $this->validateStatusCode($statusCode);
 
         $xml = (string) $response->getBody();
         $values = $this->parseResponseString($xml, 'IDN_DATE');
@@ -199,9 +197,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $response = $this->client->send($request);
 
         $statusCode = $response->getStatusCode();
-        if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \Exception('@todo', 1);
-        }
+        $this->validateStatusCode($statusCode);
 
         $xml = (string) $response->getBody();
         $values = $this->parseResponseString($xml, 'IRN_DATE');
@@ -241,9 +237,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $response = $this->client->send($request);
 
         $statusCode = $response->getStatusCode();
-        if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \Exception('@todo', 1);
-        }
+        $this->validateStatusCode($statusCode);
 
         $xml = (string) $response->getBody();
         $values = $this->parseResponseBody($xml);
@@ -358,6 +352,13 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'body' => $responseBody,
             'statusCode' => 200,
         ];
+    }
+
+    public function validateStatusCode($statusCode)
+    {
+        if ($statusCode < 200 || $statusCode >= 300) {
+            throw new \Exception('@todo', 1);
+        }
     }
 
     public function validateHash($hash, $values)
