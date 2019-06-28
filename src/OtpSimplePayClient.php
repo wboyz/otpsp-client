@@ -107,6 +107,47 @@ class OtpSimplePayClient implements LoggerAwareInterface
     }
 
     /**
+     * @var string
+     */
+    protected $backRefUrl = '';
+
+    public function getBackRefUrl(): string
+    {
+        return $this->backRefUrl;
+    }
+
+    /**
+     * @param array $backRefData
+     * @return $this
+     */
+    public function setBackRefUrl(string $backRefUrl)
+    {
+        $this->backRefUrl = $backRefUrl;
+
+        return $this;
+    }
+
+    protected $backRefData = [];
+
+    public function getBackRefData(): array
+    {
+        return $this->backRefData;
+    }
+
+    /**
+     * @param string $url
+     * @return string[]
+     */
+    public function setBackRefData(string $url): array
+    {
+        $urlParts = parse_url($url);
+        $queryVariables = [];
+        parse_str($urlParts['query'], $queryVariables);
+
+        return $queryVariables;
+    }
+
+    /**
      * @var array
      */
     protected $ipnPostData = [];
@@ -366,5 +407,19 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'body' => $responseBody,
             'statusCode' => 200,
         ];
+    }
+
+    protected function checkBackRefCtrl(): bool
+    {
+        if (isset($this->backRefData['ctrl']))
+        {
+            if ($this->backRefData['ctrl'] === $this->serializer->decode($this->backRefUrl, $this->secretKey))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        return false;
     }
 }
