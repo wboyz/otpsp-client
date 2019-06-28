@@ -20,6 +20,7 @@ class Base
         'STATUS_CODE' => 'statusCode',
         'STATUS_NAME' => 'statusName',
         'IRN_DATE' => 'irnDate',
+        'IDN_DATE' => 'idnDate',
     ];
 
     public static function __set_state($values)

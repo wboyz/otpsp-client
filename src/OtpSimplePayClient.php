@@ -163,7 +163,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         string $orderRef,
         string $orderAmount,
         string $orderCurrency
-    ) {
+    ): ?InstantDeliveryNotification {
         $header = [
             'Content-type' => 'application/x-www-form-urlencoded',
         ];
@@ -173,7 +173,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'ORDER_REF' => $orderRef,
             'ORDER_AMOUNT' => $orderAmount,
             'ORDER_CURRENCY' => $orderCurrency,
-            'IRN_DATE' => date('Y-m-d H:i:s'),
+            'IDN_DATE' => date('Y-m-d H:i:s'),
         ];
 
         $body['ORDER_HASH'] = $this->serializer->encode(array_values($body), $this->getSecretKey());
@@ -188,20 +188,15 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $response = $this->client->send($request);
 
         $statusCode = $response->getStatusCode();
-        if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \Exception('@todo', 1);
-        }
+        $this->validateStatusCode($statusCode);
 
         $xml = (string) $response->getBody();
-        $values = $this->parseResponseString($xml);
+        $values = $this->parseResponseString($xml, 'IDN_DATE');
 
         $hash = $values['HASH'];
         unset($values['HASH']);
 
-        $isValid = $hash === $this->serializer->encode($values, $this->getSecretKey());
-        if (!$isValid) {
-            throw new \Exception('@todo', 1);
-        }
+        $this->validateHash($hash, $values);
 
         if ($values['STATUS_CODE'] !== '1') {
             throw new \Exception('@todo', 1);
@@ -215,7 +210,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         string $orderAmount,
         string $orderCurrency,
         string $refundAmount
-    ) {
+    ): ?InstantRefundNotification {
         $header = [
             'Content-type' => 'application/x-www-form-urlencoded',
         ];
@@ -241,20 +236,15 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $response = $this->client->send($request);
 
         $statusCode = $response->getStatusCode();
-        if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \Exception('@todo', 1);
-        }
+        $this->validateStatusCode($statusCode);
 
         $xml = (string) $response->getBody();
-        $values = $this->parseResponseString($xml);
+        $values = $this->parseResponseString($xml, 'IRN_DATE');
 
         $hash = $values['HASH'];
         unset($values['HASH']);
 
-        $isValid = $hash === $this->serializer->encode($values, $this->getSecretKey());
-        if (!$isValid) {
-            throw new \Exception('@todo', 1);
-        }
+        $this->validateHash($hash, $values);
 
         if ($values['STATUS_CODE'] !== '1') {
             throw new \Exception('@todo', 1);
@@ -262,7 +252,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
         return InstantRefundNotification::__set_state($values);
     }
-    
+
     public function instantOrderStatusPost(string $refNoExt): ?InstantOrderStatus
     {
         $header = [
@@ -283,24 +273,18 @@ class OtpSimplePayClient implements LoggerAwareInterface
             http_build_query($body)
         );
 
-        // @todo Check response status code.
         $response = $this->client->send($request);
 
         $statusCode = $response->getStatusCode();
-        if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \Exception('@todo', 1);
-        }
+        $this->validateStatusCode($statusCode);
 
         $xml = (string) $response->getBody();
         $values = $this->parseResponseBody($xml);
-        // @todo Check HASH key.
+
         $hash = $values['HASH'];
         unset($values['HASH']);
 
-        $isValid = $hash === $this->serializer->encode($values, $this->getSecretKey());
-        if (!$isValid) {
-            throw new \Exception('@todo', 1);
-        }
+        $this->validateHash($hash, $values);
 
         if (array_key_exists('ERROR_CODE', $values)) {
             switch ($values['ERROR_CODE']) {
@@ -334,13 +318,13 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $values;
     }
 
-    protected function parseResponseString(string $xml)
+    protected function parseResponseString(string $xml, string $dateKey)
     {
         $ePayment = [
             'ORDER_REF',
             'STATUS_CODE',
             'STATUS_NAME',
-            'IRN_DATE',
+            $dateKey,
             'HASH',
         ];
 
@@ -411,15 +395,29 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     protected function checkBackRefCtrl(): bool
     {
-        if (isset($this->backRefData['ctrl']))
-        {
-            if ($this->backRefData['ctrl'] === $this->serializer->decode($this->backRefUrl, $this->secretKey))
-            {
+        if (isset($this->backRefData['ctrl'])) {
+            if ($this->backRefData['ctrl'] === $this->serializer->decode($this->backRefUrl, $this->secretKey)) {
                 return true;
             }
             return false;
         }
 
         return false;
+    }
+
+    protected function validateStatusCode($statusCode)
+    {
+        if ($statusCode < 200 || $statusCode >= 300) {
+            throw new \Exception('@todo', 1);
+        }
+    }
+
+    protected function validateHash($hash, $values)
+    {
+        $isValid = $hash === $this->serializer->encode($values, $this->getSecretKey());
+
+        if (!$isValid) {
+            throw new \Exception('Invalid hash', 1);
+        }
     }
 }

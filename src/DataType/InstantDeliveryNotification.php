@@ -25,5 +25,5 @@ class InstantDeliveryNotification extends Base
     /**
      * @var string
      */
-    public $irnDate = '';
+    public $idnDate = '';
 }
