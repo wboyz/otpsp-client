@@ -244,7 +244,6 @@ class OtpSimplePayClient implements LoggerAwareInterface
             http_build_query($body)
         );
 
-        // @todo Check response status code.
         $response = $this->client->send($request);
 
         $statusCode = $response->getStatusCode();
@@ -254,7 +253,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
         $xml = (string) $response->getBody();
         $values = $this->parseResponseBody($xml);
-        // @todo Check HASH key.
+
         $hash = $values['HASH'];
         unset($values['HASH']);
 
