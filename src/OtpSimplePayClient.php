@@ -265,7 +265,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $response = $this->client->send($request);
 
         $statusCode = $response->getStatusCode();
-        $this->validateStatusCode($statusCode);
+        $this->validateResponseStatusCode($statusCode);
 
         $xml = (string) $response->getBody();
         $values = $this->parseResponseString($xml, 'IDN_DATE');
@@ -274,10 +274,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         unset($values['HASH']);
 
         $this->validateHash($hash, $values);
-
-        if ($values['STATUS_CODE'] !== '1') {
-            throw new \Exception('invalid status code', 1);
-        }
+        $this->validateStatusCode($values);
 
         return InstantDeliveryNotification::__set_state($values);
     }
@@ -313,7 +310,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $response = $this->client->send($request);
 
         $statusCode = $response->getStatusCode();
-        $this->validateStatusCode($statusCode);
+        $this->validateResponseStatusCode($statusCode);
 
         $xml = (string) $response->getBody();
         $values = $this->parseResponseString($xml, 'IRN_DATE');
@@ -322,10 +319,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         unset($values['HASH']);
 
         $this->validateHash($hash, $values);
-
-        if ($values['STATUS_CODE'] !== '1') {
-            throw new \Exception('invalid status code', 1);
-        }
+        $this->validateStatusCode($values);
 
         return InstantRefundNotification::__set_state($values);
     }
@@ -353,7 +347,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $response = $this->client->send($request);
 
         $statusCode = $response->getStatusCode();
-        $this->validateStatusCode($statusCode);
+        $this->validateResponseStatusCode($statusCode);
 
         $xml = (string) $response->getBody();
         $values = $this->parseResponseBody($xml);
@@ -384,6 +378,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         if (count($array) === 0) {
             return [];
         }
+
         $return = [];
         foreach ($array as $name => $item) {
             if (!in_array($name, $skip)) {
@@ -396,6 +391,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
                 }
             }
         }
+
         return $return;
     }
 
@@ -502,10 +498,17 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return false;
     }
 
-    protected function validateStatusCode(int $statusCode)
+    protected function validateResponseStatusCode(int $statusCode)
     {
         if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \Exception('invalid response code', 1);
+            throw new \Exception('Invalid response code', 1);
+        }
+    }
+
+    protected function validateStatusCode(array $values)
+    {
+        if ($values['STATUS_CODE'] !== '1') {
+            throw new \Exception('Invalid status code', 1);
         }
     }
 

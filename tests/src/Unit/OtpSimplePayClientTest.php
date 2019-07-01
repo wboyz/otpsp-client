@@ -293,7 +293,7 @@ class OtpSimplePayClientTest extends TestCase
             'wrong status code' => [
                 [
                     'class' => \Exception::class,
-                    'message' => 'invalid status code',
+                    'message' => 'Invalid status code',
                     'code' => 1,
                 ],
                 '<epayment>myOrderRef|23|myStatusName|myIrnDate|myHash</epayment>',
@@ -448,7 +448,7 @@ class OtpSimplePayClientTest extends TestCase
             'wrong status code' => [
                 [
                     'class' => \Exception::class,
-                    'message' => 'invalid status code',
+                    'message' => 'Invalid status code',
                     'code' => 1,
                 ],
                 '<epayment>myOrderRef|23|myStatusName|myIdnDate|myHash</epayment>',
@@ -506,7 +506,7 @@ class OtpSimplePayClientTest extends TestCase
             ->instantDeliveryNotificationPost($orderRef, $orderAmount, $orderCurrency);
     }
 
-    public function casesValidateStatusCodeSuccess()
+    public function casesValidateResponseStatusCodeSuccess()
     {
         return [
             '200 ok test' => [
@@ -517,15 +517,15 @@ class OtpSimplePayClientTest extends TestCase
     }
 
     /**
-     * @dataProvider casesValidateStatusCodeSuccess
+     * @dataProvider casesValidateResponseStatusCodeSuccess
      */
-    public function testValidateStatusCodeSuccess($expected, int $statusCode)
+    public function testValidateResponseStatusCodeSuccess($expected, int $statusCode)
     {
         $client = new Client();
         $serializer = new Serializer();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateStatusCode');
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateResponseStatusCode');
         $validateMethod->setAccessible(true);
         $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
         $actual = $validateMethod->invokeArgs($otpClient, [$statusCode]);
@@ -533,13 +533,13 @@ class OtpSimplePayClientTest extends TestCase
         static::assertSame($expected, $actual);
     }
 
-    public function casesValidateStatusCodeFail()
+    public function casesValidateResponseStatusCodeFail()
     {
         return [
             '404 not found test' => [
                 [
                     'class' => \Exception::class,
-                    'message' => 'invalid response code',
+                    'message' => 'Invalid response code',
                     'code' => 1,
                 ],
                 404
@@ -548,9 +548,73 @@ class OtpSimplePayClientTest extends TestCase
     }
 
     /**
+     * @dataProvider casesValidateResponseStatusCodeFail
+     */
+    public function testValidateResponseStatusCodeFail(array $expected, int $statusCode)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateResponseStatusCode');
+        $validateMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+
+        static::expectException($expected['class']);
+        static::expectExceptionMessage($expected['message']);
+        static::expectExceptionCode($expected['code']);
+        $validateMethod->invokeArgs($otpClient, [$statusCode]);
+    }
+
+    public function casesValidateStatusCodeSuccess()
+    {
+        return [
+            '1 ok test' => [
+                null,
+                [
+                    'STATUS_CODE' => '1',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesValidateStatusCodeSuccess
+     */
+    public function testValidateStatusCodeSuccess($expected, array $values)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateStatusCode');
+        $validateMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+        $actual = $validateMethod->invokeArgs($otpClient, [$values]);
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function casesValidateStatusCodeFail()
+    {
+        return [
+            'not 1, fail' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => 'Invalid status code',
+                    'code' => 1,
+                ],
+                [
+                    'STATUS_CODE' => '3',
+                ],
+            ],
+        ];
+    }
+
+    /**
      * @dataProvider casesValidateStatusCodeFail
      */
-    public function testValidateStatusCodeFail(array $expected, int $statusCode)
+    public function testValidateStatusCodeFail($expected, array $values)
     {
         $client = new Client();
         $serializer = new Serializer();
@@ -563,7 +627,7 @@ class OtpSimplePayClientTest extends TestCase
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        $validateMethod->invokeArgs($otpClient, [$statusCode]);
+        $validateMethod->invokeArgs($otpClient, [$values]);
     }
 
     public function casesInstantPaymentNotificationValidate()
