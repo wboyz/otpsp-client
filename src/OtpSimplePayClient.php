@@ -336,6 +336,26 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return InstantOrderStatus::__set_state($values);
     }
 
+    public function flatArray(array $array = [], array $skip = []): array
+    {
+        if (count($array) === 0) {
+            return [];
+        }
+        $return = [];
+        foreach ($array as $name => $item) {
+            if (!in_array($name, $skip)) {
+                if (is_array($item)) {
+                    foreach ($item as $subItem) {
+                        $return[] = $subItem;
+                    }
+                } elseif (!is_array($item)) {
+                    $return[] = $item;
+                }
+            }
+        }
+        return $return;
+    }
+
     protected function parseResponseBody(string $xml): array
     {
         $doc = new \DOMDocument();
@@ -373,26 +393,6 @@ class OtpSimplePayClient implements LoggerAwareInterface
     protected function getUri(string $path): string
     {
         return $this->getBaseUri() . "/$path";
-    }
-
-    protected function flatArray(array $array = [], array $skip = []): array
-    {
-        if (count($array) === 0) {
-            return [];
-        }
-        $return = [];
-        foreach ($array as $name => $item) {
-            if (!in_array($name, $skip)) {
-                if (is_array($item)) {
-                    foreach ($item as $subItem) {
-                        $return[] = $subItem;
-                    }
-                } elseif (!is_array($item)) {
-                    $return[] = $item;
-                }
-            }
-        }
-        return $return;
     }
 
     protected function instantPaymentNotificationValidate(string $requestBody): bool
