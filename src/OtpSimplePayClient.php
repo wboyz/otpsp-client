@@ -402,7 +402,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return array_combine($ePayment, $values);
     }
 
-    protected function getUri(string $path): string
+    public function getUri(string $path): string
     {
         return $this->getBaseUri() . "/$path";
     }
@@ -444,7 +444,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
     protected function checkBackRefCtrl(): bool
     {
         $backRefData = $this->getBackRefData();
-        
+
         if (isset($backRefData['ctrl'])) {
             if ($backRefData['ctrl'] === $this->serializer->decode($this->getBackRefUrl(), $this->secretKey)) {
                 return true;
