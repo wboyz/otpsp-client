@@ -499,4 +499,35 @@ class OtpSimplePayClientTest extends TestCase
             ->setMerchantId('')
             ->instantDeliveryNotificationPost($orderRef, $orderAmount, $orderCurrency);
     }
+//
+//    public function casesInstantPaymentNotificationValidate() {
+//        return [
+//            'not_valid' => FALSE,
+//            'valid' => TRUE,
+//        ];
+//    }
+//
+//    /**
+//     * @dataProvider casesInstantPaymentNotificationValidate
+//     */
+//    public function testInstantPaymentNotificationValidate(array $expected, string $requestBody) {
+//        $client = new Client([
+//            'handler' => $handlerStack,
+//        ]);
+//
+//        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+//        $serializer = $this
+//            ->getMockBuilder(Serializer::class)
+//            ->getMock();
+//        $serializer
+//            ->expects($this->any())
+//            ->method('encode')
+//            ->willReturn('myHash');
+//
+//        $logger = new NullLogger();
+//        $actual = (new OtpSimplePayClient($client, $serializer, $logger))
+//            ->setSecretKey('')
+//            ->setMerchantId('')
+//            ->instantPaymentNotificationValidate();
+//    }
 }
