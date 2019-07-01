@@ -193,6 +193,29 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $this;
     }
 
+    /**
+     * @var array
+     */
+    protected $supportedLanguages = [
+        'CZ', 'DE', 'EN', 'ES', 'IT',
+        'HR', 'HU', 'PL', 'RO', 'SK',
+    ];
+
+    public function getSupportedLanguages(): array
+    {
+        return $this->supportedLanguages;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setSupportedLanguages(array $supportedLanguages)
+    {
+        $this->supportedLanguages = $supportedLanguages;
+
+        return $this;
+    }
+
     public function __construct(
         ClientInterface $client,
         Serializer $serializer,
