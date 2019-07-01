@@ -557,4 +557,34 @@ class OtpSimplePayClientTest extends TestCase
         static::expectExceptionCode($expected['code']);
         $validateMethod->invokeArgs($otpClient, [$statusCode]);
     }
+
+    public function casesInstantPaymentNotificationValidate()
+    {
+        return [
+            'valid' => [
+                true,
+                'REFNOEXT=1&HASH=bef91610dda7aabfe371623edb399f3e',
+            ],
+            'not_valid' => [
+                false,
+                ''
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesInstantPaymentNotificationValidate
+     */
+    public function testInstantPaymentNotificationValidate(bool $expected, string $requestBody)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'instantPaymentNotificationValidate');
+        $validateMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger);
+        $actual = $validateMethod->invokeArgs($otpClient, [$requestBody]);
+
+        static::assertSame($expected, $actual);
+    }
 }

@@ -146,6 +146,21 @@ class OtpSimplePayClient implements LoggerAwareInterface
      */
     protected $ipnPostData = [];
 
+    public function getIpnPostData(): array
+    {
+        return $this->ipnPostData;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setIpnPostData(array $ipnPostData)
+    {
+        $this->ipnPostData = $ipnPostData;
+
+        return $this;
+    }
+
     public function __construct(ClientInterface $client, Serializer $serializer, LoggerInterface $logger)
     {
         $this->client = $client;
@@ -357,14 +372,16 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     protected function instantPaymentNotificationValidate(string $requestBody): bool
     {
-        parse_str($requestBody, $this->ipnPostData);
-        if (count($this->ipnPostData) < 1 || !array_key_exists('REFNOEXT', $this->ipnPostData)) {
+        $ipnPostData = $this->getIpnPostData();
+        parse_str($requestBody, $ipnPostData);
+
+        if (count($ipnPostData) < 1 || !array_key_exists('REFNOEXT', $ipnPostData)) {
             return false;
         }
 
-        $calculatedHash = $this->serializer->encode($this->flatArray($this->ipnPostData, ['HASH']), $this->secretKey);
+        $calculatedHash = $this->serializer->encode($this->flatArray($ipnPostData, ['HASH']), $this->getSecretKey());
 
-        return $calculatedHash === $this->ipnPostData['HASH'];
+        return $calculatedHash === $ipnPostData['HASH'];
     }
 
     protected function getInstantPaymentNotificationResponse(): array
