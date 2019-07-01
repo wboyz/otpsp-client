@@ -163,17 +163,6 @@ class OtpSimplePayClient implements LoggerAwareInterface
     }
 
     /**
-     * @return $this
-     */
-    public function setBackRefDataByUrl(string $url)
-    {
-        $urlParts = parse_url($url);
-        parse_str($urlParts['query'], $this->getBackRefData());
-
-        return $this;
-    }
-
-    /**
      * @var array
      */
     protected $ipnPostData = [];
