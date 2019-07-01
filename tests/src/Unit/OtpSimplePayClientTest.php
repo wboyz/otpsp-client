@@ -500,4 +500,61 @@ class OtpSimplePayClientTest extends TestCase
             ->instantDeliveryNotificationPost($orderRef, $orderAmount, $orderCurrency);
     }
 
+    public function casesValidateStatusCodeSuccess()
+    {
+        return [
+            '200 ok test' => [
+                null,
+                200
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesValidateStatusCodeSuccess
+     */
+    public function testValidateStatusCodeSuccess($expected, int $statusCode)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateStatusCode');
+        $validateMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger);
+        $actual = $validateMethod->invokeArgs($otpClient, [$statusCode]);
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function casesValidateStatusCodeFail()
+    {
+        return [
+            '404 not found test' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => '@todo',
+                    'code' => 1,
+                ],
+                404
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesValidateStatusCodeFail
+     */
+    public function testValidateStatusCodeFail(array $expected, int $statusCode)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateStatusCode');
+        $validateMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger);
+
+        static::expectException($expected['class']);
+        static::expectExceptionMessage($expected['message']);
+        static::expectExceptionCode($expected['code']);
+        $validateMethod->invokeArgs($otpClient, [$statusCode]);
+    }
 }
