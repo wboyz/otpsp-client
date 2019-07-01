@@ -197,8 +197,16 @@ class OtpSimplePayClient implements LoggerAwareInterface
      * @var array
      */
     protected $supportedLanguages = [
-        'CZ', 'DE', 'EN', 'ES', 'IT',
-        'HR', 'HU', 'PL', 'RO', 'SK',
+        'CZ',
+        'DE',
+        'EN',
+        'ES',
+        'IT',
+        'HR',
+        'HU',
+        'PL',
+        'RO',
+        'SK',
     ];
 
     public function getSupportedLanguages(): array
@@ -454,7 +462,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             $serverDate,
         ];
 
-        $hash = $this->serializer->encode($hashArray, $this->secretKey);
+        $hash = $this->serializer->encode($hashArray, $this->getSecretKey());
         $responseBody = '<EPAYMENT>' . $serverDate . '|' . $hash . '</EPAYMENT>';
 
         return [
@@ -480,10 +488,12 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     protected function isPaymentSuccess(): bool
     {
-        if (isset($this->backRefData['RC'])
+        $backRefData = $this->getBackRefData();
+
+        if (isset($backRefData['RC'])
             && (
-                $this->backRefData['RC'] === '000'
-                || $this->backRefData['RC'] === '001'
+                $backRefData['RC'] === '000'
+                || $backRefData['RC'] === '001'
             )
         ) {
             return true;

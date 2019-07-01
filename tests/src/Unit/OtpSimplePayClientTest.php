@@ -645,4 +645,175 @@ class OtpSimplePayClientTest extends TestCase
 
         static::assertSame($expected, $actual);
     }
+
+    public function casesFlatArray()
+    {
+        return [
+            'empty array' => [
+                [],
+                [],
+                []
+            ],
+            'one dimensional array, no skip' => [
+                [
+                    'bar',
+                    'bak',
+                ],
+                [
+                    'foo' => 'bar',
+                    'baz' => 'bak',
+                ],
+                [],
+            ],
+            'one dimensional array with skip' => [
+                [
+                    'bar',
+                ],
+                [
+                    'foo' => 'bar',
+                    'baz' => 'bak',
+                ],
+                [
+                    'baz'
+                ],
+            ],
+            'multi dimensional array, no skip' => [
+                [
+                    'one',
+                    'two',
+                    'three',
+                    'bak',
+                ],
+                [
+                    'foo' => [
+                        'one',
+                        'two',
+                        'three',
+                    ],
+                    'baz' => 'bak',
+                ],
+                [],
+            ],
+            'multi dimensional array with skip' => [
+                [
+                    'one',
+                    'two',
+                    'three',
+                ],
+                [
+                    'foo' => [
+                        'one',
+                        'two',
+                        'three',
+                    ],
+                    'baz' => 'bak',
+                ],
+                [
+                    'baz'
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesFlatArray
+     */
+    public function testFlatArray(array $expected, array $given, array $skip)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->flatArray($given, $skip);
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function casesGetInstantPaymentNotificationResponse()
+    {
+        return [
+            'ok test' => [
+                [
+                    'headers' => [],
+                    'body' => '<EPAYMENT>date|20cc2d06b49a9082117397c4ecd6496c</EPAYMENT>',
+                    'statusCode' => 200,
+                ],
+                [
+                    'IPN_PID' => '1',
+                    'IPN_PNAME' => '2',
+                    'IPN_DATE' => '3',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesGetInstantPaymentNotificationResponse
+     */
+    public function testGetInstantPaymentNotificationResponse(array $expected, array $ipnPostData)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = $this->createMock(\DateTime::class);
+        $dateTime
+            ->method('format')
+            ->willReturn('date');
+        $getIpnResponseMethod = new \ReflectionMethod(
+            OtpSimplePayClient::class,
+            'getInstantPaymentNotificationResponse'
+        );
+        $getIpnResponseMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+        $otpClient->setIpnPostData($ipnPostData);
+        $actual = $getIpnResponseMethod->invoke($otpClient);
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function casesIsPaymentSuccess()
+    {
+        return [
+            'ok test' => [
+                true,
+                [
+                    'RC' => '000',
+                ]
+            ],
+            'bad test' => [
+                false,
+                [
+                    'RC' => '100',
+                ]
+            ],
+            'bad test 2' => [
+                false,
+                [
+                    'foo' => 'bar',
+                ]
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesIsPaymentSuccess
+     */
+    public function testIsPaymentSuccess(bool $expected, array $backrefData)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $getIsPaymentSuccessMethod = new \ReflectionMethod(
+            OtpSimplePayClient::class,
+            'isPaymentSuccess'
+        );
+        $getIsPaymentSuccessMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+        $otpClient->setBackRefData($backrefData);
+        $actual = $getIsPaymentSuccessMethod->invoke($otpClient);
+
+        static::assertSame($expected, $actual);
+    }
 }
