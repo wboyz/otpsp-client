@@ -66,6 +66,26 @@ class OtpSimplePayClient implements LoggerAwareInterface
     }
 
     /**
+     * @var \DateTimeInterface
+     */
+    protected $dateTime;
+
+    public function getDateTime(): \DateTimeInterface
+    {
+        return $this->dateTime;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setDateTime(\DateTimeInterface $dateTime)
+    {
+        $this->dateTime = $dateTime;
+
+        return $this;
+    }
+
+    /**
      * @var string
      */
     protected $merchantId = '';
@@ -161,11 +181,16 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $this;
     }
 
-    public function __construct(ClientInterface $client, Serializer $serializer, LoggerInterface $logger)
-    {
+    public function __construct(
+        ClientInterface $client,
+        Serializer $serializer,
+        LoggerInterface $logger,
+        \DateTimeInterface $dateTime
+    ) {
         $this->client = $client;
         $this->serializer = $serializer;
         $this->setLogger($logger);
+        $this->dateTime = $dateTime;
     }
 
     public function instantDeliveryNotificationPost(
@@ -182,7 +207,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'ORDER_REF' => $orderRef,
             'ORDER_AMOUNT' => $orderAmount,
             'ORDER_CURRENCY' => $orderCurrency,
-            'IDN_DATE' => date('Y-m-d H:i:s'),
+            'IDN_DATE' => $this->getDateTime()->format('Y-m-d H:i:s')
         ];
 
         $body['ORDER_HASH'] = $this->serializer->encode(array_values($body), $this->getSecretKey());
@@ -229,7 +254,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'ORDER_REF' => $orderRef,
             'ORDER_AMOUNT' => $orderAmount,
             'ORDER_CURRENCY' => $orderCurrency,
-            'IRN_DATE' => date('Y-m-d H:i:s'),
+            'IRN_DATE' => $this->getDateTime()->format('Y-m-d H:i:s'),
             'AMOUNT' => $refundAmount
         ];
 
@@ -386,7 +411,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     protected function getInstantPaymentNotificationResponse(): array
     {
-        $serverDate = date('YmdHis');
+        $serverDate = $this->getDateTime()->format('YmdHis');
         $hashArray = [
             $this->ipnPostData['IPN_PID'][0],
             $this->ipnPostData['IPN_PNAME'][0],
