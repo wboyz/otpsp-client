@@ -7,7 +7,6 @@ namespace Cheppers\OtpClient;
 use Cheppers\OtpClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpClient\DataType\InstantOrderStatus;
 use Cheppers\OtpClient\DataType\InstantRefundNotification;
-use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use Psr\Log\LoggerAwareInterface;
@@ -116,10 +115,6 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $this->backRefUrl;
     }
 
-    /**
-     * @param array $backRefData
-     * @return $this
-     */
     public function setBackRefUrl(string $backRefUrl)
     {
         $this->backRefUrl = $backRefUrl;
@@ -127,6 +122,9 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $this;
     }
 
+    /**
+     * @var string[]
+     */
     protected $backRefData = [];
 
     public function getBackRefData(): array
@@ -134,10 +132,6 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $this->backRefData;
     }
 
-    /**
-     * @param string $url
-     * @return string[]
-     */
     public function setBackRefData(string $url): array
     {
         $urlParts = parse_url($url);
