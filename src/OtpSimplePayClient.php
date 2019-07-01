@@ -455,18 +455,16 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return false;
     }
 
-    protected function validateStatusCode($statusCode)
+    protected function validateStatusCode(int $statusCode)
     {
         if ($statusCode < 200 || $statusCode >= 300) {
             throw new \Exception('invalid response code', 1);
         }
     }
 
-    protected function validateHash($hash, $values)
+    protected function validateHash(string $hash, array $values)
     {
-        $isValid = $hash === $this->serializer->encode($values, $this->getSecretKey());
-
-        if (!$isValid) {
+        if ($hash !== $this->serializer->encode($values, $this->getSecretKey())) {
             throw new \Exception('Invalid hash', 1);
         }
     }
