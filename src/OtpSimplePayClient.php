@@ -193,7 +193,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $this->validateHash($hash, $values);
 
         if ($values['STATUS_CODE'] !== '1') {
-            throw new \Exception('@todo', 1);
+            throw new \Exception('invalid status code', 1);
         }
 
         return InstantDeliveryNotification::__set_state($values);
@@ -241,7 +241,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $this->validateHash($hash, $values);
 
         if ($values['STATUS_CODE'] !== '1') {
-            throw new \Exception('@todo', 1);
+            throw new \Exception('invalid status code', 1);
         }
 
         return InstantRefundNotification::__set_state($values);
@@ -414,7 +414,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
     protected function validateStatusCode($statusCode)
     {
         if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \Exception('@todo', 1);
+            throw new \Exception('invalid response code', 1);
         }
     }
 

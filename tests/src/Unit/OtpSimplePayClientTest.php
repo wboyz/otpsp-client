@@ -290,7 +290,7 @@ class OtpSimplePayClientTest extends TestCase
             'wrong status code' => [
                 [
                     'class' => \Exception::class,
-                    'message' => '@todo',
+                    'message' => 'invalid status code',
                     'code' => 1,
                 ],
                 '<epayment>myOrderRef|23|myStatusName|myIrnDate|myHash</epayment>',
@@ -443,7 +443,7 @@ class OtpSimplePayClientTest extends TestCase
             'wrong status code' => [
                 [
                     'class' => \Exception::class,
-                    'message' => '@todo',
+                    'message' => 'invalid status code',
                     'code' => 1,
                 ],
                 '<epayment>myOrderRef|23|myStatusName|myIdnDate|myHash</epayment>',
@@ -532,7 +532,7 @@ class OtpSimplePayClientTest extends TestCase
             '404 not found test' => [
                 [
                     'class' => \Exception::class,
-                    'message' => '@todo',
+                    'message' => 'invalid response code',
                     'code' => 1,
                 ],
                 404
