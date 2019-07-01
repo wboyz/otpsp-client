@@ -407,7 +407,12 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     protected function isPaymentSuccess(): bool
     {
-        if (isset($this->backRefData['RC']) && ($this->backRefData['RC'] === '000' || $this->backRefData['RC'] === '001')) {
+        if (isset($this->backRefData['RC'])
+            && (
+                $this->backRefData['RC'] === '000'
+                || $this->backRefData['RC'] === '001'
+            )
+        ) {
             return true;
         }
 
