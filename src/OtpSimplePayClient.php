@@ -152,13 +152,25 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $this->backRefData;
     }
 
-    public function setBackRefData(string $url): array
+    /**
+     * @return $this
+     */
+    public function setBackRefData(array $backRefData)
+    {
+        $this->backRefData = $backRefData;
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setBackRefDataByUrl(string $url)
     {
         $urlParts = parse_url($url);
-        $queryVariables = [];
-        parse_str($urlParts['query'], $queryVariables);
+        parse_str($urlParts['query'], $this->getBackRefData());
 
-        return $queryVariables;
+        return $this;
     }
 
     /**
@@ -431,8 +443,10 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     protected function checkBackRefCtrl(): bool
     {
-        if (isset($this->backRefData['ctrl'])) {
-            if ($this->backRefData['ctrl'] === $this->serializer->decode($this->backRefUrl, $this->secretKey)) {
+        $backRefData = $this->getBackRefData();
+        
+        if (isset($backRefData['ctrl'])) {
+            if ($backRefData['ctrl'] === $this->serializer->decode($this->getBackRefUrl(), $this->secretKey)) {
                 return true;
             }
             return false;

@@ -573,7 +573,7 @@ class OtpSimplePayClientTest extends TestCase
                 true,
                 'REFNOEXT=1&HASH=bef91610dda7aabfe371623edb399f3e',
             ],
-            'not_valid' => [
+            'invalid' => [
                 false,
                 ''
             ],
@@ -593,6 +593,55 @@ class OtpSimplePayClientTest extends TestCase
         $validateMethod->setAccessible(true);
         $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
         $actual = $validateMethod->invokeArgs($otpClient, [$requestBody]);
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function casesCheckBackRefCtrl()
+    {
+        return [
+            'ok' => [
+                true,
+                'http://foo.com/index.php?bar=2&ctrl=ef0f99144905c90eff3ad03e590777c8',
+                [
+                    'foo' => 2,
+                    'ctrl' => 'ef0f99144905c90eff3ad03e590777c8',
+                ]
+            ],
+            'bad ctrl' => [
+                false,
+                'http://foo.com/index.php?bar=2&ctrl=102',
+                [
+                    'foo' => 2,
+                    'ctrl' => '101',
+                ]
+            ],
+            'no ctrl parameter' => [
+                false,
+                '',
+                [
+                    'foo' => 2,
+                    'bar' => 'baz',
+                ]
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesCheckBackRefCtrl
+     */
+    public function testCheckBackRefCtrl(bool $expected, string $backrefUrl, array $backrefData)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'checkBackRefCtrl');
+        $validateMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+        $otpClient->setBackRefData($backrefData);
+        $otpClient->setBackRefUrl($backrefUrl);
+        $actual = $validateMethod->invoke($otpClient);
 
         static::assertSame($expected, $actual);
     }
