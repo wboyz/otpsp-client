@@ -2,12 +2,12 @@
 
 declare(strict_types = 1);
 
-namespace Cheppers\OtpClient\Tests\Unit\DataType;
+namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 
-use Cheppers\OtpClient\DataType\InstantRefundNotification;
+use Cheppers\OtpspClient\DataType\InstantRefundNotification;
 
 /**
- * @covers \Cheppers\OtpClient\DataType\InstantOrderStatus<extended>
+ * @covers \Cheppers\OtpspClient\DataType\InstantOrderStatus<extended>
  */
 class InstantRefundNotificationTest extends TestBase
 {

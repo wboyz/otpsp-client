@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cheppers\OtpClient;
+namespace Cheppers\OtpspClient;
 
 class Serializer extends UrlParser
 {

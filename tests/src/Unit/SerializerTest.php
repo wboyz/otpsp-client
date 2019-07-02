@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Cheppers\OtpClient\Tests\Unit;
+namespace Cheppers\OtpspClient\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Cheppers\OtpClient\Serializer;
+use Cheppers\OtpspClient\Serializer;
 
 /**
  * Class SerializerTest
- * @covers \Cheppers\OtpClient\Serializer
- * @package Cheppers\OtpClient\Tests\Unit
+ * @covers \Cheppers\OtpspClient\Serializer
+ * @package Cheppers\OtpspClient\Tests\Unit
  */
 class SerializerTest extends TestCase
 {

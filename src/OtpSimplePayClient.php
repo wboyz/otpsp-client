@@ -2,11 +2,11 @@
 
 declare(strict_types = 1);
 
-namespace Cheppers\OtpClient;
+namespace Cheppers\OtpspClient;
 
-use Cheppers\OtpClient\DataType\InstantDeliveryNotification;
-use Cheppers\OtpClient\DataType\InstantOrderStatus;
-use Cheppers\OtpClient\DataType\InstantRefundNotification;
+use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
+use Cheppers\OtpspClient\DataType\InstantOrderStatus;
+use Cheppers\OtpspClient\DataType\InstantRefundNotification;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use Psr\Log\LoggerAwareInterface;
@@ -18,7 +18,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
     use LoggerAwareTrait;
 
     /**
-     * @var \Cheppers\OtpClient\Serializer|null
+     * @var \Cheppers\OtpspClient\Serializer|null
      */
     protected $serializer = null;
 

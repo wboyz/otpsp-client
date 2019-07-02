@@ -23,12 +23,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Cheppers\\OtpClient\\": "src/"
+            "Cheppers\\OtpspClient\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Cheppers\\OtpClient\\Tests\\": "tests/src/"
+            "Cheppers\\OtpspClient\\Tests\\": "tests/src/"
         }
     },
     "scripts": {

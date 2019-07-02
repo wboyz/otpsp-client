@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace Cheppers\OtpClient\DataType;
+namespace Cheppers\OtpspClient\DataType;
 
 class InstantOrderStatus extends Base
 {
