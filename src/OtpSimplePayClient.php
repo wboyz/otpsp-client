@@ -384,7 +384,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $return;
     }
 
-    protected function parseResponseBody(string $xml): array
+    public function parseResponseBody(string $xml): array
     {
         $doc = new \DOMDocument();
         $doc->loadXML($xml);
@@ -400,7 +400,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $values;
     }
 
-    protected function parseResponseString(string $xml, string $dateKey)
+    public function parseResponseString(string $xml, string $dateKey)
     {
         $ePayment = [
             'ORDER_REF',
@@ -423,7 +423,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $this->getBaseUri() . "/$path";
     }
 
-    protected function instantPaymentNotificationValidate(string $requestBody): bool
+    public function instantPaymentNotificationValidate(string $requestBody): bool
     {
         $ipnPostData = $this->getIpnPostData();
         parse_str($requestBody, $ipnPostData);
@@ -437,7 +437,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $calculatedHash === $ipnPostData['HASH'];
     }
 
-    protected function getInstantPaymentNotificationResponse(): array
+    public function getInstantPaymentNotificationResponse(): array
     {
         $serverDate = $this->getDateTime()->format('YmdHis');
         $hashArray = [
@@ -457,7 +457,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         ];
     }
 
-    protected function checkBackRefCtrl(): bool
+    public function checkBackRefCtrl(): bool
     {
         $backRefData = $this->getBackRefData();
 
@@ -471,7 +471,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return false;
     }
 
-    protected function isPaymentSuccess(): bool
+    public function isPaymentSuccess(): bool
     {
         $backRefData = $this->getBackRefData();
 
@@ -487,24 +487,24 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return false;
     }
 
-    protected function validateResponseStatusCode(int $statusCode)
-    {
-        if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \Exception('Invalid response code', 1);
-        }
-    }
-
-    protected function validateStatusCode(array $values)
+    public function validateStatusCode(array $values)
     {
         if ($values['STATUS_CODE'] !== '1') {
             throw new \Exception('Invalid status code', 1);
         }
     }
 
-    protected function validateHash(string $hash, array $values)
+    public function validateHash(string $hash, array $values)
     {
         if ($hash !== $this->serializer->encode($values, $this->getSecretKey())) {
             throw new \Exception('Invalid hash', 1);
+        }
+    }
+
+    protected function validateResponseStatusCode(int $statusCode)
+    {
+        if ($statusCode < 200 || $statusCode >= 300) {
+            throw new \Exception('Invalid response code', 1);
         }
     }
 }
