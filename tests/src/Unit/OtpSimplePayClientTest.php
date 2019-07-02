@@ -525,10 +525,8 @@ class OtpSimplePayClientTest extends TestCase
         $serializer = new Serializer();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateResponseStatusCode');
-        $validateMethod->setAccessible(true);
-        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
-        $actual = $validateMethod->invokeArgs($otpClient, [$statusCode]);
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->validateResponseStatusCode($statusCode);
 
         static::assertSame($expected, $actual);
     }
@@ -556,14 +554,12 @@ class OtpSimplePayClientTest extends TestCase
         $serializer = new Serializer();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateResponseStatusCode');
-        $validateMethod->setAccessible(true);
-        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
 
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        $validateMethod->invokeArgs($otpClient, [$statusCode]);
+        (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->validateResponseStatusCode($statusCode);
     }
 
     public function casesValidateStatusCodeSuccess()

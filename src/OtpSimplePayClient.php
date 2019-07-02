@@ -501,7 +501,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         }
     }
 
-    protected function validateResponseStatusCode(int $statusCode)
+    public function validateResponseStatusCode(int $statusCode)
     {
         if ($statusCode < 200 || $statusCode >= 300) {
             throw new \Exception('Invalid response code', 1);
