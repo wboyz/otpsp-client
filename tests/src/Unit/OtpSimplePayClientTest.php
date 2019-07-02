@@ -525,10 +525,8 @@ class OtpSimplePayClientTest extends TestCase
         $serializer = new Serializer();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateResponseStatusCode');
-        $validateMethod->setAccessible(true);
-        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
-        $actual = $validateMethod->invokeArgs($otpClient, [$statusCode]);
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->validateResponseStatusCode($statusCode);
 
         static::assertSame($expected, $actual);
     }
@@ -556,14 +554,12 @@ class OtpSimplePayClientTest extends TestCase
         $serializer = new Serializer();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateResponseStatusCode');
-        $validateMethod->setAccessible(true);
-        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
 
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        $validateMethod->invokeArgs($otpClient, [$statusCode]);
+        (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->validateResponseStatusCode($statusCode);
     }
 
     public function casesValidateStatusCodeSuccess()
@@ -587,10 +583,8 @@ class OtpSimplePayClientTest extends TestCase
         $serializer = new Serializer();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateStatusCode');
-        $validateMethod->setAccessible(true);
-        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
-        $actual = $validateMethod->invokeArgs($otpClient, [$values]);
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->validateStatusCode($values);
 
         static::assertSame($expected, $actual);
     }
@@ -620,14 +614,12 @@ class OtpSimplePayClientTest extends TestCase
         $serializer = new Serializer();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateStatusCode');
-        $validateMethod->setAccessible(true);
-        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
 
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        $validateMethod->invokeArgs($otpClient, [$values]);
+        (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->validateStatusCode($values);
     }
 
     public function casesInstantPaymentNotificationValidate()
@@ -653,10 +645,8 @@ class OtpSimplePayClientTest extends TestCase
         $serializer = new Serializer();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'instantPaymentNotificationValidate');
-        $validateMethod->setAccessible(true);
-        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
-        $actual = $validateMethod->invokeArgs($otpClient, [$requestBody]);
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->instantPaymentNotificationValidate($requestBody);
 
         static::assertSame($expected, $actual);
     }
@@ -700,12 +690,10 @@ class OtpSimplePayClientTest extends TestCase
         $serializer = new Serializer();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'checkBackRefCtrl');
-        $validateMethod->setAccessible(true);
-        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
-        $otpClient->setBackRefData($backrefData);
-        $otpClient->setBackRefUrl($backrefUrl);
-        $actual = $validateMethod->invoke($otpClient);
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->setBackRefData($backrefData)
+            ->setBackRefUrl($backrefUrl)
+            ->checkBackRefCtrl();
 
         static::assertSame($expected, $actual);
     }
@@ -824,14 +812,9 @@ class OtpSimplePayClientTest extends TestCase
         $dateTime
             ->method('format')
             ->willReturn('date');
-        $getIpnResponseMethod = new \ReflectionMethod(
-            OtpSimplePayClient::class,
-            'getInstantPaymentNotificationResponse'
-        );
-        $getIpnResponseMethod->setAccessible(true);
-        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
-        $otpClient->setIpnPostData($ipnPostData);
-        $actual = $getIpnResponseMethod->invoke($otpClient);
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->setIpnPostData($ipnPostData)
+            ->getInstantPaymentNotificationResponse();
 
         static::assertSame($expected, $actual);
     }
@@ -869,14 +852,9 @@ class OtpSimplePayClientTest extends TestCase
         $serializer = new Serializer();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $getIsPaymentSuccessMethod = new \ReflectionMethod(
-            OtpSimplePayClient::class,
-            'isPaymentSuccess'
-        );
-        $getIsPaymentSuccessMethod->setAccessible(true);
-        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
-        $otpClient->setBackRefData($backrefData);
-        $actual = $getIsPaymentSuccessMethod->invoke($otpClient);
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->setBackRefData($backrefData)
+            ->isPaymentSuccess();
 
         static::assertSame($expected, $actual);
     }
