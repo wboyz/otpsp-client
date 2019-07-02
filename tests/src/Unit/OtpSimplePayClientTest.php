@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpClient\Tests\Unit;
 
+use Cheppers\OtpClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpClient\DataType\InstantOrderStatus;
+use Cheppers\OtpClient\DataType\InstantRefundNotification;
 use Cheppers\OtpClient\OtpSimplePayClient;
 use Cheppers\OtpClient\Serializer;
 use GuzzleHttp\Client;
@@ -15,6 +17,7 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 /**
  * @covers \Cheppers\OtpClient\OtpSimplePayClient
@@ -91,7 +94,9 @@ class OtpSimplePayClientTest extends TestCase
             ->method('encode')
             ->willReturn('myHash');
 
-        $actual = (new OtpSimplePayClient($client, $serializer))
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantOrderStatusPost($refNoExt);
@@ -116,7 +121,7 @@ class OtpSimplePayClientTest extends TestCase
             'hash mismatch' => [
                 [
                     'class' => \Exception::class,
-                    'message' => '@todo',
+                    'message' => 'Invalid hash',
                     'code' => 1,
                 ],
                 implode(PHP_EOL, [
@@ -181,9 +186,698 @@ class OtpSimplePayClientTest extends TestCase
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        (new OtpSimplePayClient($client, $serializer))
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantOrderStatusPost($refNoExt);
+    }
+
+    public function casesInstantRefundNotificationPost()
+    {
+        return [
+            'basic' => [
+                InstantRefundNotification::__set_state([
+                    'ORDER_REF' => 'myOrderRef',
+                    'STATUS_CODE' => '1',
+                    'STATUS_NAME' => 'myStatusName',
+                    'IRN_DATE' => 'myIrnDate',
+                ]),
+                '<epayment>myOrderRef|1|myStatusName|myIrnDate|myHash</epayment>',
+                'foo',
+                'var',
+                'bar',
+                'baz',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesInstantRefundNotificationPost
+     */
+    public function testInstantRefundNotificationPost(
+        ?InstantRefundNotification $expected,
+        string $responseBody,
+        string $orderRef,
+        string $orderAmount,
+        string $orderCurrency,
+        string $refundAmount
+    ) {
+        $container = [];
+        $history = Middleware::history($container);
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/xml'],
+                $responseBody
+            ),
+            new RequestException('Error Communicating with Server', new Request('GET', 'order/irn.php'))
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($history);
+        $client = new Client([
+            'handler' => $handlerStack,
+        ]);
+
+        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        $serializer = $this
+            ->getMockBuilder(Serializer::class)
+            ->getMock();
+        $serializer
+            ->expects($this->any())
+            ->method('encode')
+            ->willReturn('myHash');
+
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->setSecretKey('')
+            ->setMerchantId('')
+            ->instantRefundNotificationPost(
+                $orderRef,
+                $orderAmount,
+                $orderCurrency,
+                $refundAmount
+            );
+
+        static::assertEquals($expected, $actual);
+
+        /** @var \GuzzleHttp\Psr7\Request $request */
+        $request = $container[0]['request'];
+        static::assertEquals(1, count($container));
+        static::assertEquals('POST', $request->getMethod());
+        static::assertEquals(['application/x-www-form-urlencoded'], $request->getHeader('Content-type'));
+        static::assertEquals(['sandbox.simplepay.hu'], $request->getHeader('Host'));
+        static::assertEquals(
+            'https://sandbox.simplepay.hu/payment/order/irn.php',
+            (string) $request->getUri()
+        );
+    }
+
+    public function casesInstantRefundNotificationPostError()
+    {
+        return [
+            'hash mismatch' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => 'Invalid hash',
+                    'code' => 1,
+                ],
+                '<epayment>myOrderRef|1|myStatusName|myIrnDate|myOtherHash</epayment>',
+                'foo',
+                'var',
+                'bar',
+                'baz',
+            ],
+            'wrong status code' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => 'Invalid status code',
+                    'code' => 1,
+                ],
+                '<epayment>myOrderRef|23|myStatusName|myIrnDate|myHash</epayment>',
+                'foo',
+                'var',
+                'bar',
+                'baz',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesInstantRefundNotificationPostError
+     */
+    public function testInstantRefundNotificationPostError(
+        array $expected,
+        string $responseBody,
+        string $orderRef,
+        string $orderAmount,
+        string $orderCurrency,
+        string $refundAmount
+    ) {
+        $container = [];
+        $history = Middleware::history($container);
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/xml'],
+                $responseBody
+            ),
+            new RequestException('Error Communicating with Server', new Request('GET', 'order/irn.php'))
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($history);
+        $client = new Client([
+            'handler' => $handlerStack,
+        ]);
+
+        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        $serializer = $this
+            ->getMockBuilder(Serializer::class)
+            ->getMock();
+        $serializer
+            ->expects($this->any())
+            ->method('encode')
+            ->willReturn('myHash');
+
+        static::expectException($expected['class']);
+        static::expectExceptionMessage($expected['message']);
+        static::expectExceptionCode($expected['code']);
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->setSecretKey('')
+            ->setMerchantId('')
+            ->instantRefundNotificationPost($orderRef, $orderAmount, $orderCurrency, $refundAmount);
+    }
+
+    public function casesInstantDeliveryNotificationPost()
+    {
+        return [
+            'basic' => [
+                InstantDeliveryNotification::__set_state([
+                    'ORDER_REF' => 'myOrderRef',
+                    'STATUS_CODE' => '1',
+                    'STATUS_NAME' => 'myStatusName',
+                    'IDN_DATE' => 'myIdnDate',
+                ]),
+                '<epayment>myOrderRef|1|myStatusName|myIdnDate|myHash</epayment>',
+                'foo',
+                'var',
+                'bar',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesInstantDeliveryNotificationPost
+     */
+    public function testInstantDeliveryNotificationPost(
+        ?InstantDeliveryNotification $expected,
+        string $responseBody,
+        string $orderRef,
+        string $orderAmount,
+        string $orderCurrency
+    ) {
+        $container = [];
+        $history = Middleware::history($container);
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/xml'],
+                $responseBody
+            ),
+            new RequestException('Error Communicating with Server', new Request('GET', 'order/idn.php'))
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($history);
+        $client = new Client([
+            'handler' => $handlerStack,
+        ]);
+
+        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        $serializer = $this
+            ->getMockBuilder(Serializer::class)
+            ->getMock();
+        $serializer
+            ->expects($this->any())
+            ->method('encode')
+            ->willReturn('myHash');
+
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->setSecretKey('')
+            ->setMerchantId('')
+            ->instantDeliveryNotificationPost(
+                $orderRef,
+                $orderAmount,
+                $orderCurrency
+            );
+
+        static::assertEquals($expected, $actual);
+
+        /** @var \GuzzleHttp\Psr7\Request $request */
+        $request = $container[0]['request'];
+        static::assertEquals(1, count($container));
+        static::assertEquals('POST', $request->getMethod());
+        static::assertEquals(['application/x-www-form-urlencoded'], $request->getHeader('Content-type'));
+        static::assertEquals(['sandbox.simplepay.hu'], $request->getHeader('Host'));
+        static::assertEquals(
+            'https://sandbox.simplepay.hu/payment/order/idn.php',
+            (string) $request->getUri()
+        );
+    }
+
+    public function casesInstantDeliveryNotificationPostError()
+    {
+        return [
+            'hash mismatch' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => 'Invalid hash',
+                    'code' => 1,
+                ],
+                '<epayment>myOrderRef|1|myStatusName|myIdnDate|myOtherHash</epayment>',
+                'foo',
+                'var',
+                'bar',
+                'baz',
+            ],
+            'wrong status code' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => 'Invalid status code',
+                    'code' => 1,
+                ],
+                '<epayment>myOrderRef|23|myStatusName|myIdnDate|myHash</epayment>',
+                'foo',
+                'var',
+                'bar',
+                'baz',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesInstantDeliveryNotificationPostError
+     */
+    public function testInstantDeliveryNotificationPostError(
+        array $expected,
+        string $responseBody,
+        string $orderRef,
+        string $orderAmount,
+        string $orderCurrency
+    ) {
+        $container = [];
+        $history = Middleware::history($container);
+        $mock = new MockHandler([
+            new Response(
+                200,
+                ['Content-Type' => 'application/xml'],
+                $responseBody
+            ),
+            new RequestException('Error Communicating with Server', new Request('GET', 'order/idn.php'))
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($history);
+        $client = new Client([
+            'handler' => $handlerStack,
+        ]);
+
+        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        $serializer = $this
+            ->getMockBuilder(Serializer::class)
+            ->getMock();
+        $serializer
+            ->expects($this->any())
+            ->method('encode')
+            ->willReturn('myHash');
+
+        static::expectException($expected['class']);
+        static::expectExceptionMessage($expected['message']);
+        static::expectExceptionCode($expected['code']);
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->setSecretKey('')
+            ->setMerchantId('')
+            ->instantDeliveryNotificationPost($orderRef, $orderAmount, $orderCurrency);
+    }
+
+    public function casesValidateResponseStatusCodeSuccess()
+    {
+        return [
+            '200 ok test' => [
+                null,
+                200
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesValidateResponseStatusCodeSuccess
+     */
+    public function testValidateResponseStatusCodeSuccess($expected, int $statusCode)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateResponseStatusCode');
+        $validateMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+        $actual = $validateMethod->invokeArgs($otpClient, [$statusCode]);
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function casesValidateResponseStatusCodeFail()
+    {
+        return [
+            '404 not found test' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => 'Invalid response code',
+                    'code' => 1,
+                ],
+                404
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesValidateResponseStatusCodeFail
+     */
+    public function testValidateResponseStatusCodeFail(array $expected, int $statusCode)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateResponseStatusCode');
+        $validateMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+
+        static::expectException($expected['class']);
+        static::expectExceptionMessage($expected['message']);
+        static::expectExceptionCode($expected['code']);
+        $validateMethod->invokeArgs($otpClient, [$statusCode]);
+    }
+
+    public function casesValidateStatusCodeSuccess()
+    {
+        return [
+            '1 ok test' => [
+                null,
+                [
+                    'STATUS_CODE' => '1',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesValidateStatusCodeSuccess
+     */
+    public function testValidateStatusCodeSuccess($expected, array $values)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateStatusCode');
+        $validateMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+        $actual = $validateMethod->invokeArgs($otpClient, [$values]);
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function casesValidateStatusCodeFail()
+    {
+        return [
+            'not 1, fail' => [
+                [
+                    'class' => \Exception::class,
+                    'message' => 'Invalid status code',
+                    'code' => 1,
+                ],
+                [
+                    'STATUS_CODE' => '3',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesValidateStatusCodeFail
+     */
+    public function testValidateStatusCodeFail($expected, array $values)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'validateStatusCode');
+        $validateMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+
+        static::expectException($expected['class']);
+        static::expectExceptionMessage($expected['message']);
+        static::expectExceptionCode($expected['code']);
+        $validateMethod->invokeArgs($otpClient, [$values]);
+    }
+
+    public function casesInstantPaymentNotificationValidate()
+    {
+        return [
+            'valid' => [
+                true,
+                'REFNOEXT=1&HASH=bef91610dda7aabfe371623edb399f3e',
+            ],
+            'invalid' => [
+                false,
+                ''
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesInstantPaymentNotificationValidate
+     */
+    public function testInstantPaymentNotificationValidate(bool $expected, string $requestBody)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'instantPaymentNotificationValidate');
+        $validateMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+        $actual = $validateMethod->invokeArgs($otpClient, [$requestBody]);
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function casesCheckBackRefCtrl()
+    {
+        return [
+            'ok' => [
+                true,
+                'http://foo.com/index.php?bar=2&ctrl=ef0f99144905c90eff3ad03e590777c8',
+                [
+                    'foo' => 2,
+                    'ctrl' => 'ef0f99144905c90eff3ad03e590777c8',
+                ]
+            ],
+            'bad ctrl' => [
+                false,
+                'http://foo.com/index.php?bar=2&ctrl=102',
+                [
+                    'foo' => 2,
+                    'ctrl' => '101',
+                ]
+            ],
+            'no ctrl parameter' => [
+                false,
+                '',
+                [
+                    'foo' => 2,
+                    'bar' => 'baz',
+                ]
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesCheckBackRefCtrl
+     */
+    public function testCheckBackRefCtrl(bool $expected, string $backrefUrl, array $backrefData)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $validateMethod = new \ReflectionMethod(OtpSimplePayClient::class, 'checkBackRefCtrl');
+        $validateMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+        $otpClient->setBackRefData($backrefData);
+        $otpClient->setBackRefUrl($backrefUrl);
+        $actual = $validateMethod->invoke($otpClient);
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function casesFlatArray()
+    {
+        return [
+            'empty array' => [
+                [],
+                [],
+                []
+            ],
+            'one dimensional array, no skip' => [
+                [
+                    'bar',
+                    'bak',
+                ],
+                [
+                    'foo' => 'bar',
+                    'baz' => 'bak',
+                ],
+                [],
+            ],
+            'one dimensional array with skip' => [
+                [
+                    'bar',
+                ],
+                [
+                    'foo' => 'bar',
+                    'baz' => 'bak',
+                ],
+                [
+                    'baz'
+                ],
+            ],
+            'multi dimensional array, no skip' => [
+                [
+                    'one',
+                    'two',
+                    'three',
+                    'bak',
+                ],
+                [
+                    'foo' => [
+                        'one',
+                        'two',
+                        'three',
+                    ],
+                    'baz' => 'bak',
+                ],
+                [],
+            ],
+            'multi dimensional array with skip' => [
+                [
+                    'one',
+                    'two',
+                    'three',
+                ],
+                [
+                    'foo' => [
+                        'one',
+                        'two',
+                        'three',
+                    ],
+                    'baz' => 'bak',
+                ],
+                [
+                    'baz'
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesFlatArray
+     */
+    public function testFlatArray(array $expected, array $given, array $skip)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->flatArray($given, $skip);
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function casesGetInstantPaymentNotificationResponse()
+    {
+        return [
+            'ok test' => [
+                [
+                    'headers' => [],
+                    'body' => '<EPAYMENT>date|20cc2d06b49a9082117397c4ecd6496c</EPAYMENT>',
+                    'statusCode' => 200,
+                ],
+                [
+                    'IPN_PID' => '1',
+                    'IPN_PNAME' => '2',
+                    'IPN_DATE' => '3',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesGetInstantPaymentNotificationResponse
+     */
+    public function testGetInstantPaymentNotificationResponse(array $expected, array $ipnPostData)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = $this->createMock(\DateTime::class);
+        $dateTime
+            ->method('format')
+            ->willReturn('date');
+        $getIpnResponseMethod = new \ReflectionMethod(
+            OtpSimplePayClient::class,
+            'getInstantPaymentNotificationResponse'
+        );
+        $getIpnResponseMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+        $otpClient->setIpnPostData($ipnPostData);
+        $actual = $getIpnResponseMethod->invoke($otpClient);
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function casesIsPaymentSuccess()
+    {
+        return [
+            'ok test' => [
+                true,
+                [
+                    'RC' => '000',
+                ]
+            ],
+            'bad test' => [
+                false,
+                [
+                    'RC' => '100',
+                ]
+            ],
+            'bad test 2' => [
+                false,
+                [
+                    'foo' => 'bar',
+                ]
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesIsPaymentSuccess
+     */
+    public function testIsPaymentSuccess(bool $expected, array $backrefData)
+    {
+        $client = new Client();
+        $serializer = new Serializer();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $getIsPaymentSuccessMethod = new \ReflectionMethod(
+            OtpSimplePayClient::class,
+            'isPaymentSuccess'
+        );
+        $getIsPaymentSuccessMethod->setAccessible(true);
+        $otpClient = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+        $otpClient->setBackRefData($backrefData);
+        $actual = $getIsPaymentSuccessMethod->invoke($otpClient);
+
+        static::assertSame($expected, $actual);
     }
 }

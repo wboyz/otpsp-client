@@ -16,6 +16,11 @@ class Base
         'REFNOEXT' => 'refNoExt',
         'ORDER_STATUS' => 'orderStatus',
         'PAYMETHOD' => 'payMethod',
+        'ORDER_REF' => 'orderRef',
+        'STATUS_CODE' => 'statusCode',
+        'STATUS_NAME' => 'statusName',
+        'IRN_DATE' => 'irnDate',
+        'IDN_DATE' => 'idnDate',
     ];
 
     public static function __set_state($values)
