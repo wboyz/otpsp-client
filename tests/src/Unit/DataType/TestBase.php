@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace Cheppers\OtpClient\Tests\Unit\DataType;
+namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 
 use PHPUnit\Framework\TestCase;
 
@@ -10,7 +10,7 @@ abstract class TestBase extends TestCase
 {
 
     /**
-     * @var string|\Cheppers\OtpClient\DataType\Base
+     * @var string|\Cheppers\OtpspClient\DataType\Base
      */
     protected $className = '';
 

@@ -2,13 +2,13 @@
 
 declare(strict_types = 1);
 
-namespace Cheppers\OtpClient\Tests\Unit;
+namespace Cheppers\OtpspClient\Tests\Unit;
 
-use Cheppers\OtpClient\DataType\InstantDeliveryNotification;
-use Cheppers\OtpClient\DataType\InstantOrderStatus;
-use Cheppers\OtpClient\DataType\InstantRefundNotification;
-use Cheppers\OtpClient\OtpSimplePayClient;
-use Cheppers\OtpClient\Serializer;
+use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
+use Cheppers\OtpspClient\DataType\InstantOrderStatus;
+use Cheppers\OtpspClient\DataType\InstantRefundNotification;
+use Cheppers\OtpspClient\OtpSimplePayClient;
+use Cheppers\OtpspClient\Serializer;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
 /**
- * @covers \Cheppers\OtpClient\OtpSimplePayClient
+ * @covers \Cheppers\OtpspClient\OtpSimplePayClient
  */
 class OtpSimplePayClientTest extends TestCase
 {
@@ -85,7 +85,7 @@ class OtpSimplePayClientTest extends TestCase
             'handler' => $handlerStack,
         ]);
 
-        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        /** @var \Cheppers\OtpspClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
         $serializer = $this
             ->getMockBuilder(Serializer::class)
             ->getMock();
@@ -174,7 +174,7 @@ class OtpSimplePayClientTest extends TestCase
             'handler' => $handlerStack,
         ]);
 
-        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        /** @var \Cheppers\OtpspClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
         $serializer = $this
             ->getMockBuilder(Serializer::class)
             ->getMock();
@@ -240,7 +240,7 @@ class OtpSimplePayClientTest extends TestCase
             'handler' => $handlerStack,
         ]);
 
-        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        /** @var \Cheppers\OtpspClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
         $serializer = $this
             ->getMockBuilder(Serializer::class)
             ->getMock();
@@ -332,7 +332,7 @@ class OtpSimplePayClientTest extends TestCase
             'handler' => $handlerStack,
         ]);
 
-        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        /** @var \Cheppers\OtpspClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
         $serializer = $this
             ->getMockBuilder(Serializer::class)
             ->getMock();
@@ -396,7 +396,7 @@ class OtpSimplePayClientTest extends TestCase
             'handler' => $handlerStack,
         ]);
 
-        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        /** @var \Cheppers\OtpspClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
         $serializer = $this
             ->getMockBuilder(Serializer::class)
             ->getMock();
@@ -486,7 +486,7 @@ class OtpSimplePayClientTest extends TestCase
             'handler' => $handlerStack,
         ]);
 
-        /** @var \Cheppers\OtpClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        /** @var \Cheppers\OtpspClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
         $serializer = $this
             ->getMockBuilder(Serializer::class)
             ->getMock();
