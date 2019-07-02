@@ -143,26 +143,6 @@ class OtpSimplePayClient implements LoggerAwareInterface
     }
 
     /**
-     * @var string[]
-     */
-    protected $backRefData = [];
-
-    public function getBackRefData(): array
-    {
-        return $this->backRefData;
-    }
-
-    /**
-     * @return $this
-     */
-    public function setBackRefData(array $backRefData)
-    {
-        $this->backRefData = $backRefData;
-
-        return $this;
-    }
-
-    /**
      * @var array
      */
     protected $ipnPostData = [];
@@ -431,7 +411,9 @@ class OtpSimplePayClient implements LoggerAwareInterface
             return false;
         }
 
-        $calculatedHash = $this->serializer->encode($this->flatArray($this->ipnPostData, ['HASH']), $this->getSecretKey());
+        $calculatedHash = $this
+            ->serializer
+            ->encode($this->flatArray($this->ipnPostData, ['HASH']), $this->getSecretKey());
 
         return $calculatedHash === $this->ipnPostData['HASH'];
     }
@@ -456,34 +438,14 @@ class OtpSimplePayClient implements LoggerAwareInterface
         ];
     }
 
-    public function checkBackRefCtrl(): bool
+    public function checkBackRefCtrl(string $ctrl): bool
     {
-        $backRefData = $this->getBackRefData();
-
-        if (isset($backRefData['ctrl'])) {
-            if ($backRefData['ctrl'] === $this->serializer->decode($this->getBackRefUrl(), $this->secretKey)) {
-                return true;
-            }
-            return false;
-        }
-
-        return false;
+        return ($ctrl === $this->serializer->decode($this->getBackRefUrl(), $this->secretKey));
     }
 
-    public function isPaymentSuccess(): bool
+    public function isPaymentSuccess(string $returnCode): bool
     {
-        $backRefData = $this->getBackRefData();
-
-        if (isset($backRefData['RC'])
-            && (
-                $backRefData['RC'] === '000'
-                || $backRefData['RC'] === '001'
-            )
-        ) {
-            return true;
-        }
-
-        return false;
+        return $returnCode === '000' || $returnCode === '001';
     }
 
     public function validateStatusCode(array $values)

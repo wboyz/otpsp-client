@@ -657,26 +657,12 @@ class OtpSimplePayClientTest extends TestCase
             'ok' => [
                 true,
                 'http://foo.com/index.php?bar=2&ctrl=ef0f99144905c90eff3ad03e590777c8',
-                [
-                    'foo' => 2,
-                    'ctrl' => 'ef0f99144905c90eff3ad03e590777c8',
-                ]
+                'ef0f99144905c90eff3ad03e590777c8',
             ],
             'bad ctrl' => [
                 false,
                 'http://foo.com/index.php?bar=2&ctrl=102',
-                [
-                    'foo' => 2,
-                    'ctrl' => '101',
-                ]
-            ],
-            'no ctrl parameter' => [
-                false,
-                '',
-                [
-                    'foo' => 2,
-                    'bar' => 'baz',
-                ]
+                '101',
             ],
         ];
     }
@@ -684,16 +670,15 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesCheckBackRefCtrl
      */
-    public function testCheckBackRefCtrl(bool $expected, string $backrefUrl, array $backrefData)
+    public function testCheckBackRefCtrl(bool $expected, string $backrefUrl, string $ctrl)
     {
         $client = new Client();
         $serializer = new Serializer();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->setBackRefData($backrefData)
             ->setBackRefUrl($backrefUrl)
-            ->checkBackRefCtrl();
+            ->checkBackRefCtrl($ctrl);
 
         static::assertSame($expected, $actual);
     }
@@ -824,21 +809,15 @@ class OtpSimplePayClientTest extends TestCase
         return [
             'ok test' => [
                 true,
-                [
-                    'RC' => '000',
-                ]
+                '000',
             ],
             'bad test' => [
                 false,
-                [
-                    'RC' => '100',
-                ]
+                '100',
             ],
             'bad test 2' => [
                 false,
-                [
-                    'foo' => 'bar',
-                ]
+                'bar',
             ],
         ];
     }
@@ -846,15 +825,14 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesIsPaymentSuccess
      */
-    public function testIsPaymentSuccess(bool $expected, array $backrefData)
+    public function testIsPaymentSuccess(bool $expected, string $returnCode)
     {
         $client = new Client();
         $serializer = new Serializer();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->setBackRefData($backrefData)
-            ->isPaymentSuccess();
+            ->isPaymentSuccess($returnCode);
 
         static::assertSame($expected, $actual);
     }
