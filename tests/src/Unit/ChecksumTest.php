@@ -71,7 +71,7 @@ class ChecksumTest extends TestCase
     public function testEncodeSuccess(array $data, string $secretKey, string $expected): void
     {
         $serializer = new Checksum();
-        $result = $serializer->encode($data, $secretKey);
+        $result = $serializer->calculate($data, $secretKey);
 
         static::assertSame($expected, $result);
     }
@@ -105,6 +105,6 @@ class ChecksumTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Data can not be multidimensional array.');
 
-        $serializer->encode($data, $secretKey);
+        $serializer->calculate($data, $secretKey);
     }
 }

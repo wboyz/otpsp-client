@@ -6,10 +6,12 @@ namespace Cheppers\OtpspClient;
 
 class Checksum
 {
+    /**
+     * @var string
+     */
     public $hashAlgorithm = 'md5';
-    public $queryVariable = 'ctrl';
 
-    public function encode(array $data, string $secretKey)
+    public function calculate(array $data, string $secretKey)
     {
         if (empty($data)) {
             return '';
@@ -21,6 +23,7 @@ class Checksum
             if (is_array($field)) {
                 throw new \Exception('Data can not be multidimensional array.');
             }
+
             $hashString .= strlen(stripslashes($field)) . $field;
         }
 
