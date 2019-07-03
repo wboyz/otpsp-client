@@ -378,7 +378,10 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $values;
     }
 
-    public function parseResponseString(string $xml, string $dateKey)
+    /**
+     * @return string[]
+     */
+    public function parseResponseString(string $xml, string $dateKey): array
     {
         $ePayment = [
             'ORDER_REF',
@@ -401,7 +404,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $this->getBaseUri() . "/$path";
     }
 
-    public function instantPaymentNotificationValidate(string $requestBody): bool
+    public function isInstantPaymentNotificationValid(string $requestBody): bool
     {
         parse_str($requestBody, $this->ipnPostData);
 
@@ -416,7 +419,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $calculatedHash === $this->ipnPostData['HASH'];
     }
 
-    public function getInstantPaymentNotificationResponse(): array
+    public function getInstantPaymentNotificationSuccessResponse(): array
     {
         $serverDate = $this->getDateTime()->format('YmdHis');
         $hashArray = [
@@ -430,9 +433,23 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $responseBody = '<EPAYMENT>' . $serverDate . '|' . $hash . '</EPAYMENT>';
 
         return [
-            'headers' => [],
+            'headers' => [
+                'Content-Type' => 'application/xml',
+            ],
             'body' => $responseBody,
             'statusCode' => 200,
+        ];
+    }
+
+    public function getInstantPaymentNotificationFailedResponse(): array
+    {
+
+        return [
+            'headers' => [
+                'Content-Type' => 'text/plain',
+            ],
+            'body' => 'Instant Payment Notification cannot be processed',
+            'statusCode' => 503,
         ];
     }
 
