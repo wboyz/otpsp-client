@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Cheppers\OtpspClient;
 
-class Serializer extends UrlParser
+class Checksum
 {
     public $hashAlgorithm = 'md5';
     public $queryVariable = 'ctrl';
@@ -25,25 +25,5 @@ class Serializer extends UrlParser
         }
 
         return hash_hmac($this->hashAlgorithm, $hashString, trim($secretKey));
-    }
-
-    public function decode(string $url, string $secretKey)
-    {
-        if ($url === '') {
-            return '';
-        }
-
-        $urlWithNoCtrl = $this->removeQueryVariable($url, $this->queryVariable);
-        $hashString = strlen($urlWithNoCtrl) . $urlWithNoCtrl;
-
-        return hash_hmac($this->hashAlgorithm, $hashString, trim($secretKey));
-    }
-
-    public function isUrlValid(string $url, string $secretKey): bool
-    {
-        return $this->decode($url, $secretKey)
-        === $this->getUrlQueryVariable($url, $this->queryVariable)
-        ? true
-        : false;
     }
 }

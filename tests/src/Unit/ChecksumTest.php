@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Cheppers\OtpspClient\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Cheppers\OtpspClient\Serializer;
+use Cheppers\OtpspClient\Checksum;
 
 /**
  * Class SerializerTest
- * @covers \Cheppers\OtpspClient\Serializer
+ * @covers \Cheppers\OtpspClient\Checksum
  * @package Cheppers\OtpspClient\Tests\Unit
  */
-class SerializerTest extends TestCase
+class ChecksumTest extends TestCase
 {
     public function casesEncodeSuccess(): array
     {
@@ -70,7 +70,7 @@ class SerializerTest extends TestCase
      */
     public function testEncodeSuccess(array $data, string $secretKey, string $expected): void
     {
-        $serializer = new Serializer();
+        $serializer = new Checksum();
         $result = $serializer->encode($data, $secretKey);
 
         static::assertSame($expected, $result);
@@ -100,71 +100,11 @@ class SerializerTest extends TestCase
      */
     public function testEncodeFail(array $data, string $secretKey): void
     {
-        $serializer = new Serializer();
+        $serializer = new Checksum();
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Data can not be multidimensional array.');
 
         $serializer->encode($data, $secretKey);
-    }
-
-    public function casesDecode(): array
-    {
-        return [
-            'Empty url given, should return exception' => [
-                '',
-                '',
-                '',
-            ],
-            'Real test' => [
-                'https://weboldalam.tld/backref.php?order_ref=101010514611570269664'
-                . '&order_currency=HUF&RC=000&RT=000+%7C+OK&3dsecure=NO'
-                . '&date=2016-04-20+14%3A57%3A38&payrefno=99016530&ctrl=a5a268fd200eaef93e87a3f1403ce65f',
-                'FxDa5w314kLlNseq2sKuVwaqZshZT5d6',
-                'a5a268fd200eaef93e87a3f1403ce65f',
-            ],
-        ];
-    }
-
-    /**
-     * @dataProvider casesDecode
-     */
-    public function testDecode(string $url, string $secretKey, string $expected): void
-    {
-        $serializer = new Serializer();
-        $result = $serializer->decode($url, $secretKey);
-
-        static::assertSame($expected, $result);
-    }
-
-    public function casesIsUrlValid(): array
-    {
-        return [
-            'Good url test' => [
-                'https://weboldalam.tld/backref.php?'
-                . 'order_ref=101010514611570269664&order_currency=HUF&RC=000&RT=000+%7C+OK&3dsecure=NO'
-                . '&date=2016-04-20+14%3A57%3A38&payrefno=99016530&ctrl=a5a268fd200eaef93e87a3f1403ce65f',
-                'FxDa5w314kLlNseq2sKuVwaqZshZT5d6',
-                true,
-            ],
-            'Bad url test' => [
-                'https://weboldalam.tld/backref.php?order_ref=101010514611570269664'
-                . '&order_currency=HUF&RC=000&RT=000+%7C+OK&3dsecure=NO'
-                . '&date=2016-04-20+14%3A57%3A38&payrefno=99016530&ctrl=a1lx1r8mlviq2uzbjdgifnt90z19ldbm',
-                'FxDa5w314kLlNseq2sKuVwaqZshZT5d6',
-                false,
-            ],
-        ];
-    }
-
-    /**
-     * @dataProvider casesIsUrlValid
-     */
-    public function testIsUrlValid(string $url, string $secretKey, bool $expected): void
-    {
-        $serializer = new Serializer();
-        $result = $serializer->isUrlValid($url, $secretKey);
-
-        static::assertSame($expected, $result);
     }
 }

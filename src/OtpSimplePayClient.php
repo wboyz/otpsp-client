@@ -26,9 +26,9 @@ class OtpSimplePayClient implements LoggerAwareInterface
     const STATUS_CODE_NOT_FOUND = 5011;
 
     /**
-     * @var \Cheppers\OtpspClient\Serializer
+     * @var \Cheppers\OtpspClient\Checksum
      */
-    protected $serializer;
+    protected $checksum;
 
     /**
      * @var string
@@ -134,23 +134,6 @@ class OtpSimplePayClient implements LoggerAwareInterface
     }
 
     /**
-     * @var string
-     */
-    protected $backRefUrl = '';
-
-    public function getBackRefUrl(): string
-    {
-        return $this->backRefUrl;
-    }
-
-    public function setBackRefUrl(string $backRefUrl)
-    {
-        $this->backRefUrl = $backRefUrl;
-
-        return $this;
-    }
-
-    /**
      * @var array
      */
     protected $ipnPostData = [];
@@ -206,12 +189,12 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     public function __construct(
         ClientInterface $client,
-        Serializer $serializer,
+        Checksum $serializer,
         LoggerInterface $logger,
         \DateTimeInterface $dateTime
     ) {
         $this->client = $client;
-        $this->serializer = $serializer;
+        $this->checksum = $serializer;
         $this->setLogger($logger);
         $this->dateTime = $dateTime;
     }
@@ -233,7 +216,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'IDN_DATE' => $this->getDateTime()->format('Y-m-d H:i:s')
         ];
 
-        $body['ORDER_HASH'] = $this->serializer->encode(array_values($body), $this->getSecretKey());
+        $body['ORDER_HASH'] = $this->checksum->encode(array_values($body), $this->getSecretKey());
 
         $request = new Request(
             'POST',
@@ -278,7 +261,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'AMOUNT' => $refundAmount
         ];
 
-        $body['ORDER_HASH'] = $this->serializer->encode(array_values($body), $this->getSecretKey());
+        $body['ORDER_HASH'] = $this->checksum->encode(array_values($body), $this->getSecretKey());
 
         $request = new Request(
             'POST',
@@ -315,7 +298,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'REFNOEXT' => $refNoExt,
         ];
 
-        $body['HASH'] = $this->serializer->encode(array_values($body), $this->getSecretKey());
+        $body['HASH'] = $this->checksum->encode(array_values($body), $this->getSecretKey());
 
         $request = new Request(
             'POST',
@@ -427,7 +410,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
         }
 
         $calculatedHash = $this
-            ->serializer
+            ->checksum
             ->encode($this->flatArray($this->ipnPostData, ['HASH']), $this->getSecretKey());
 
         return $calculatedHash === $this->ipnPostData['HASH'];
@@ -443,7 +426,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             $serverDate,
         ];
 
-        $hash = $this->serializer->encode($hashArray, $this->getSecretKey());
+        $hash = $this->checksum->encode($hashArray, $this->getSecretKey());
         $responseBody = '<EPAYMENT>' . $serverDate . '|' . $hash . '</EPAYMENT>';
 
         return [
@@ -455,7 +438,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     public function checkBackRefCtrl(string $ctrl): bool
     {
-        return ($ctrl === $this->serializer->decode($this->getBackRefUrl(), $this->secretKey));
+        return ($ctrl === $this->checksum->decode($this->getBackRefUrl(), $this->secretKey));
     }
 
     /**
@@ -477,7 +460,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
     public function validateStatusCode(array $values)
     {
         if ($values['STATUS_CODE'] != static::STATUS_CODE_SUCCESS) {
-            throw new \Exception('Invalid status code', 1);
+            throw new \Exception($values['STATUS_NAME'], 1);
         }
 
         return $this;
@@ -485,7 +468,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     public function validateHash(string $hash, array $values)
     {
-        if ($hash !== $this->serializer->encode($values, $this->getSecretKey())) {
+        if ($hash !== $this->checksum->encode($values, $this->getSecretKey())) {
             throw new \Exception('Invalid hash', 1);
         }
     }

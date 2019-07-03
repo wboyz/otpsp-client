@@ -8,7 +8,7 @@ use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
 use Cheppers\OtpspClient\OtpSimplePayClient;
-use Cheppers\OtpspClient\Serializer;
+use Cheppers\OtpspClient\Checksum;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
@@ -85,9 +85,9 @@ class OtpSimplePayClientTest extends TestCase
             'handler' => $handlerStack,
         ]);
 
-        /** @var \Cheppers\OtpspClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $serializer */
         $serializer = $this
-            ->getMockBuilder(Serializer::class)
+            ->getMockBuilder(Checksum::class)
             ->getMock();
         $serializer
             ->expects($this->any())
@@ -174,9 +174,9 @@ class OtpSimplePayClientTest extends TestCase
             'handler' => $handlerStack,
         ]);
 
-        /** @var \Cheppers\OtpspClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $serializer */
         $serializer = $this
-            ->getMockBuilder(Serializer::class)
+            ->getMockBuilder(Checksum::class)
             ->getMock();
         $serializer
             ->expects($this->any())
@@ -240,9 +240,9 @@ class OtpSimplePayClientTest extends TestCase
             'handler' => $handlerStack,
         ]);
 
-        /** @var \Cheppers\OtpspClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $serializer */
         $serializer = $this
-            ->getMockBuilder(Serializer::class)
+            ->getMockBuilder(Checksum::class)
             ->getMock();
         $serializer
             ->expects($this->any())
@@ -293,7 +293,7 @@ class OtpSimplePayClientTest extends TestCase
             'wrong status code' => [
                 [
                     'class' => \Exception::class,
-                    'message' => 'Invalid status code',
+                    'message' => 'myStatusName',
                     'code' => 1,
                 ],
                 '<epayment>myOrderRef|23|myStatusName|myIrnDate|myHash</epayment>',
@@ -332,9 +332,9 @@ class OtpSimplePayClientTest extends TestCase
             'handler' => $handlerStack,
         ]);
 
-        /** @var \Cheppers\OtpspClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $serializer */
         $serializer = $this
-            ->getMockBuilder(Serializer::class)
+            ->getMockBuilder(Checksum::class)
             ->getMock();
         $serializer
             ->expects($this->any())
@@ -396,9 +396,9 @@ class OtpSimplePayClientTest extends TestCase
             'handler' => $handlerStack,
         ]);
 
-        /** @var \Cheppers\OtpspClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $serializer */
         $serializer = $this
-            ->getMockBuilder(Serializer::class)
+            ->getMockBuilder(Checksum::class)
             ->getMock();
         $serializer
             ->expects($this->any())
@@ -448,7 +448,7 @@ class OtpSimplePayClientTest extends TestCase
             'wrong status code' => [
                 [
                     'class' => \Exception::class,
-                    'message' => 'Invalid status code',
+                    'message' => 'myStatusName',
                     'code' => 1,
                 ],
                 '<epayment>myOrderRef|23|myStatusName|myIdnDate|myHash</epayment>',
@@ -486,9 +486,9 @@ class OtpSimplePayClientTest extends TestCase
             'handler' => $handlerStack,
         ]);
 
-        /** @var \Cheppers\OtpspClient\Serializer|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $serializer */
         $serializer = $this
-            ->getMockBuilder(Serializer::class)
+            ->getMockBuilder(Checksum::class)
             ->getMock();
         $serializer
             ->expects($this->any())
@@ -522,7 +522,7 @@ class OtpSimplePayClientTest extends TestCase
     public function testValidateResponseStatusCodeSuccess($expected, int $statusCode)
     {
         $client = new Client();
-        $serializer = new Serializer();
+        $serializer = new Checksum();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
@@ -551,7 +551,7 @@ class OtpSimplePayClientTest extends TestCase
     public function testValidateResponseStatusCodeFail(array $expected, int $statusCode)
     {
         $client = new Client();
-        $serializer = new Serializer();
+        $serializer = new Checksum();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
 
@@ -566,7 +566,7 @@ class OtpSimplePayClientTest extends TestCase
     {
         return [
             '1 ok test' => [
-                null,
+                new OtpSimplePayClient(),
                 [
                     'STATUS_CODE' => '1',
                 ],
@@ -580,7 +580,7 @@ class OtpSimplePayClientTest extends TestCase
     public function testValidateStatusCodeSuccess($expected, array $values)
     {
         $client = new Client();
-        $serializer = new Serializer();
+        $serializer = new Checksum();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
@@ -595,11 +595,12 @@ class OtpSimplePayClientTest extends TestCase
             'not 1, fail' => [
                 [
                     'class' => \Exception::class,
-                    'message' => 'Invalid status code',
+                    'message' => 'MyStatusName',
                     'code' => 1,
                 ],
                 [
                     'STATUS_CODE' => '3',
+                    'STATUS_NAME' => 'MyStatusName',
                 ],
             ],
         ];
@@ -611,7 +612,7 @@ class OtpSimplePayClientTest extends TestCase
     public function testValidateStatusCodeFail($expected, array $values)
     {
         $client = new Client();
-        $serializer = new Serializer();
+        $serializer = new Checksum();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
 
@@ -642,43 +643,11 @@ class OtpSimplePayClientTest extends TestCase
     public function testInstantPaymentNotificationValidate(bool $expected, string $requestBody)
     {
         $client = new Client();
-        $serializer = new Serializer();
+        $serializer = new Checksum();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->instantPaymentNotificationValidate($requestBody);
-
-        static::assertSame($expected, $actual);
-    }
-
-    public function casesCheckBackRefCtrl()
-    {
-        return [
-            'ok' => [
-                true,
-                'http://foo.com/index.php?bar=2&ctrl=ef0f99144905c90eff3ad03e590777c8',
-                'ef0f99144905c90eff3ad03e590777c8',
-            ],
-            'bad ctrl' => [
-                false,
-                'http://foo.com/index.php?bar=2&ctrl=102',
-                '101',
-            ],
-        ];
-    }
-
-    /**
-     * @dataProvider casesCheckBackRefCtrl
-     */
-    public function testCheckBackRefCtrl(bool $expected, string $backrefUrl, string $ctrl)
-    {
-        $client = new Client();
-        $serializer = new Serializer();
-        $logger = new NullLogger();
-        $dateTime = new \DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->setBackRefUrl($backrefUrl)
-            ->checkBackRefCtrl($ctrl);
 
         static::assertSame($expected, $actual);
     }
@@ -758,7 +727,7 @@ class OtpSimplePayClientTest extends TestCase
     public function testFlatArray(array $expected, array $given, array $skip)
     {
         $client = new Client();
-        $serializer = new Serializer();
+        $serializer = new Checksum();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
@@ -791,7 +760,7 @@ class OtpSimplePayClientTest extends TestCase
     public function testGetInstantPaymentNotificationResponse(array $expected, array $ipnPostData)
     {
         $client = new Client();
-        $serializer = new Serializer();
+        $serializer = new Checksum();
         $logger = new NullLogger();
         $dateTime = $this->createMock(\DateTime::class);
         $dateTime
@@ -828,7 +797,7 @@ class OtpSimplePayClientTest extends TestCase
     public function testIsPaymentSuccess(bool $expected, string $returnCode)
     {
         $client = new Client();
-        $serializer = new Serializer();
+        $serializer = new Checksum();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
