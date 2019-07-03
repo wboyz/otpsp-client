@@ -22,13 +22,13 @@ class InstantDeliveryNotificationTest extends TestBase
             'basic' => [
                 [
                     'orderRef' => 'a',
-                    'statusCode' => 'b',
+                    'statusCode' => 10,
                     'statusName' => 'c',
                     'idnDate' => 'd',
                 ],
                 [
                     'ORDER_REF' => 'a',
-                    'STATUS_CODE' => 'b',
+                    'STATUS_CODE' => '10',
                     'STATUS_NAME' => 'c',
                     'IDN_DATE' => 'd',
                 ],

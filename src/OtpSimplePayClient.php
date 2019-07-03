@@ -17,10 +17,18 @@ class OtpSimplePayClient implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
+    const RETURN_CODE_SUCCESS = '000';
+
+    const RETURN_CODE_SUCCESS_1 = '001';
+
+    const STATUS_CODE_SUCCESS = 1;
+
+    const STATUS_CODE_NOT_FOUND = 5011;
+
     /**
-     * @var \Cheppers\OtpspClient\Serializer|null
+     * @var \Cheppers\OtpspClient\Serializer
      */
-    protected $serializer = null;
+    protected $serializer;
 
     /**
      * @var string
@@ -178,6 +186,9 @@ class OtpSimplePayClient implements LoggerAwareInterface
         'SK',
     ];
 
+    /**
+     * @return string[]
+     */
     public function getSupportedLanguages(): array
     {
         return $this->supportedLanguages;
@@ -328,7 +339,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
         if (array_key_exists('ERROR_CODE', $values)) {
             switch ($values['ERROR_CODE']) {
-                case '5011':
+                case static::STATUS_CODE_NOT_FOUND:
                     // Not found.
                     return null;
             }
@@ -375,6 +386,10 @@ class OtpSimplePayClient implements LoggerAwareInterface
         /** @var \DOMNode $node */
         foreach ($xpath->query('./*', $rootNode) as $node) {
             $values[$node->nodeName] = $node->textContent;
+        }
+
+        if (array_key_exists('STATUS_CODE', $values)) {
+            settype($values['STATUS_CODE'], 'int');
         }
 
         return $values;
@@ -443,16 +458,29 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return ($ctrl === $this->serializer->decode($this->getBackRefUrl(), $this->secretKey));
     }
 
+    /**
+     * @return string[]
+     */
+    public function getSuccessReturnCodes(): array
+    {
+        return [
+            static::RETURN_CODE_SUCCESS,
+            static::RETURN_CODE_SUCCESS_1,
+        ];
+    }
+
     public function isPaymentSuccess(string $returnCode): bool
     {
-        return $returnCode === '000' || $returnCode === '001';
+        return in_array($returnCode, $this->getSuccessReturnCodes());
     }
 
     public function validateStatusCode(array $values)
     {
-        if ($values['STATUS_CODE'] !== '1') {
+        if ($values['STATUS_CODE'] != static::STATUS_CODE_SUCCESS) {
             throw new \Exception('Invalid status code', 1);
         }
+
+        return $this;
     }
 
     public function validateHash(string $hash, array $values)

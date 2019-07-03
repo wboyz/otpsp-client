@@ -31,6 +31,10 @@ class Base
                 continue;
             }
 
+            if ($src === 'STATUS_CODE') {
+                settype($values[$src], 'int');
+            }
+
             $self->{$dst} = $values[$src];
         }
 
