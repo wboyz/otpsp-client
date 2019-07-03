@@ -154,7 +154,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
     }
 
     /**
-     * @var array
+     * @var string[]
      */
     protected $supportedLanguages = [
         'CZ',

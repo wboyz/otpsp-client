@@ -623,7 +623,7 @@ class OtpSimplePayClientTest extends TestCase
             ->validateStatusCode($values);
     }
 
-    public function casesInstantPaymentNotificationValidate()
+    public function casesIsInstantPaymentNotificationValid()
     {
         return [
             'valid' => [
@@ -638,7 +638,7 @@ class OtpSimplePayClientTest extends TestCase
     }
 
     /**
-     * @dataProvider casesInstantPaymentNotificationValidate
+     * @dataProvider casesIsInstantPaymentNotificationValid
      */
     public function testInstantPaymentNotificationValidate(bool $expected, string $requestBody)
     {
@@ -647,7 +647,7 @@ class OtpSimplePayClientTest extends TestCase
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->instantPaymentNotificationValidate($requestBody);
+            ->isInstantPaymentNotificationValid($requestBody);
 
         static::assertSame($expected, $actual);
     }
@@ -736,12 +736,14 @@ class OtpSimplePayClientTest extends TestCase
         static::assertSame($expected, $actual);
     }
 
-    public function casesGetInstantPaymentNotificationResponse()
+    public function casesGetInstantPaymentNotificationSuccessResponse()
     {
         return [
             'ok test' => [
                 [
-                    'headers' => [],
+                    'headers' => [
+                        'Content-Type' => 'application/xml'
+                    ],
                     'body' => '<EPAYMENT>date|20cc2d06b49a9082117397c4ecd6496c</EPAYMENT>',
                     'statusCode' => 200,
                 ],
@@ -755,9 +757,9 @@ class OtpSimplePayClientTest extends TestCase
     }
 
     /**
-     * @dataProvider casesGetInstantPaymentNotificationResponse
+     * @dataProvider casesGetInstantPaymentNotificationSuccessResponse
      */
-    public function testGetInstantPaymentNotificationResponse(array $expected, array $ipnPostData)
+    public function testGetInstantPaymentNotificationSuccessResponse(array $expected, array $ipnPostData)
     {
         $client = new Client();
         $serializer = new Checksum();
@@ -768,7 +770,40 @@ class OtpSimplePayClientTest extends TestCase
             ->willReturn('date');
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->setIpnPostData($ipnPostData)
-            ->getInstantPaymentNotificationResponse();
+            ->getInstantPaymentNotificationSuccessResponse();
+
+        static::assertSame($expected, $actual);
+    }
+
+    public function casesGetInstantPaymentNotificationFailedResponse()
+    {
+        return [
+            'ok test' => [
+                [
+                    'headers' => [
+                        'Content-Type' => 'text/plain',
+                    ],
+                    'body' => 'Instant Payment Notification cannot be processed',
+                    'statusCode' => 503,
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesGetInstantPaymentNotificationFailedResponse
+     */
+    public function testGetInstantPaymentNotificationFailedResponse(array $expected)
+    {
+        $client = new Client();
+        $serializer = new Checksum();
+        $logger = new NullLogger();
+        $dateTime = $this->createMock(\DateTime::class);
+        $dateTime
+            ->method('format')
+            ->willReturn('date');
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->getInstantPaymentNotificationFailedResponse();
 
         static::assertSame($expected, $actual);
     }
