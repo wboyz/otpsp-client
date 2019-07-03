@@ -453,11 +453,6 @@ class OtpSimplePayClient implements LoggerAwareInterface
         ];
     }
 
-    public function checkBackRefCtrl(string $ctrl): bool
-    {
-        return ($ctrl === $this->checksum->decode($this->getBackRefUrl(), $this->secretKey));
-    }
-
     /**
      * @return string[]
      */

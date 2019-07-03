@@ -562,33 +562,6 @@ class OtpSimplePayClientTest extends TestCase
             ->validateResponseStatusCode($statusCode);
     }
 
-    public function casesValidateStatusCodeSuccess()
-    {
-        return [
-            '1 ok test' => [
-                new OtpSimplePayClient(),
-                [
-                    'STATUS_CODE' => '1',
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * @dataProvider casesValidateStatusCodeSuccess
-     */
-    public function testValidateStatusCodeSuccess($expected, array $values)
-    {
-        $client = new Client();
-        $serializer = new Checksum();
-        $logger = new NullLogger();
-        $dateTime = new \DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->validateStatusCode($values);
-
-        static::assertSame($expected, $actual);
-    }
-
     public function casesValidateStatusCodeFail()
     {
         return [
