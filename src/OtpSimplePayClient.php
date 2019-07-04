@@ -8,7 +8,7 @@ use Cheppers\OtpspClient\DataType\Backref;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
-use Cheppers\OtpspClient\DataType\Ipn;
+use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use Psr\Log\LoggerAwareInterface;
@@ -390,7 +390,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     /**
      * {@inheritdoc}
      */
-    public function getInstantPaymentNotificationSuccessResponse(Ipn $ipn): array
+    public function getInstantPaymentNotificationSuccessResponse(InstantPaymentNotification $ipn): array
     {
         $serverDate = $this->getDateTime()->format('YmdHis');
         $hashArray = [
@@ -496,11 +496,11 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     /**
      * {@inheritdoc}
      */
-    public function parseInstantPaymentNotificationRequest(string $body): Ipn
+    public function parseInstantPaymentNotificationRequest(string $body): InstantPaymentNotification
     {
         $values = [];
         parse_str($body, $values);
 
-        return Ipn::__set_state($values);
+        return InstantPaymentNotification::__set_state($values);
     }
 }

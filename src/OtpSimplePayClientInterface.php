@@ -6,7 +6,7 @@ use Cheppers\OtpspClient\DataType\Backref;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
-use Cheppers\OtpspClient\DataType\Ipn;
+use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 
 interface OtpSimplePayClientInterface
 {
@@ -44,7 +44,7 @@ interface OtpSimplePayClientInterface
 
     public function isInstantPaymentNotificationValid(string $requestBody): bool;
 
-    public function getInstantPaymentNotificationSuccessResponse(Ipn $ipn): array;
+    public function getInstantPaymentNotificationSuccessResponse(InstantPaymentNotification $ipn): array;
 
     public function getInstantPaymentNotificationFailedResponse(): array;
 
@@ -67,5 +67,5 @@ interface OtpSimplePayClientInterface
 
     public function parseBackRefRequest(string $url): Backref;
 
-    public function parseInstantPaymentNotificationRequest(string $body): Ipn;
+    public function parseInstantPaymentNotificationRequest(string $body): InstantPaymentNotification;
 }

@@ -8,7 +8,7 @@ use Cheppers\OtpspClient\DataType\Backref;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
-use Cheppers\OtpspClient\DataType\Ipn;
+use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use Cheppers\OtpspClient\OtpSimplePayClient;
 use Cheppers\OtpspClient\Checksum;
 use GuzzleHttp\Client;
@@ -668,7 +668,7 @@ class OtpSimplePayClientTest extends TestCase
                     'body' => '<EPAYMENT>date|20cc2d06b49a9082117397c4ecd6496c</EPAYMENT>',
                     'statusCode' => 200,
                 ],
-                Ipn::__set_state([
+                InstantPaymentNotification::__set_state([
                     'IPN_PID' => '1',
                     'IPN_PNAME' => '2',
                     'IPN_DATE' => '3',
@@ -680,7 +680,7 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesGetInstantPaymentNotificationSuccessResponse
      */
-    public function testGetInstantPaymentNotificationSuccessResponse(array $expected, Ipn $ipn)
+    public function testGetInstantPaymentNotificationSuccessResponse(array $expected, InstantPaymentNotification $ipn)
     {
         $client = new Client();
         $serializer = new Checksum();
@@ -800,7 +800,7 @@ class OtpSimplePayClientTest extends TestCase
     {
         return [
             'test1' => [
-                Ipn::__set_state([
+                InstantPaymentNotification::__set_state([
                     'REFNO' => '1234',
                     'REFNOEXT' => '1111',
                     'ORDERSTATUS' => 'ok',
@@ -826,7 +826,7 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesParseInstantPaymentNotificationRequest
      */
-    public function testParseInstantPaymentNotificationRequest(Ipn $expected, string $body)
+    public function testParseInstantPaymentNotificationRequest(InstantPaymentNotification $expected, string $body)
     {
         $client = new Client();
         $serializer = new Checksum();

@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
-class Ipn extends Base
+class InstantPaymentNotification extends Base
 {
 
     /**
