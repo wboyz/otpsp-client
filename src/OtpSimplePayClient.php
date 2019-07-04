@@ -23,11 +23,6 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     protected $checksum;
 
     /**
-     * @var \Cheppers\OtpspClient\Utils
-     */
-    protected $utils;
-
-    /**
      * @var string
      */
     protected $baseUri = 'https://sandbox.simplepay.hu/payment';
@@ -187,13 +182,11 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     public function __construct(
         ClientInterface $client,
         Checksum $serializer,
-        Utils $utils,
         LoggerInterface $logger,
         \DateTimeInterface $dateTime
     ) {
         $this->client = $client;
         $this->checksum = $serializer;
-        $this->utils = $utils;
         $this->setLogger($logger);
         $this->dateTime = $dateTime;
     }
@@ -406,7 +399,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
 
         $calculatedHash = $this
             ->checksum
-            ->calculate($this->utils->flatArray($this->ipnPostData, ['HASH']), $this->getSecretKey());
+            ->calculate(Utils::flatArray($this->ipnPostData, ['HASH']), $this->getSecretKey());
 
         return $calculatedHash === $this->ipnPostData['HASH'];
     }
@@ -490,6 +483,8 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         if ($hash !== $this->checksum->calculate($values, $this->getSecretKey())) {
             throw new \Exception('Invalid hash', 1);
         }
+
+        return $this;
     }
 
     /**
@@ -500,5 +495,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         if ($statusCode < 200 || $statusCode >= 300) {
             throw new \Exception('Invalid response code', 1);
         }
+
+        return $this;
     }
 }

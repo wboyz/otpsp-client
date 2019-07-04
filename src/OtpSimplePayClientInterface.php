@@ -48,9 +48,18 @@ interface OtpSimplePayClientInterface
 
     public function isPaymentSuccess(string $returnCode): bool;
 
+    /**
+     * @return $this
+     */
     public function validateStatusCode(array $values);
 
+    /**
+     * @return $this
+     */
     public function validateHash(string $hash, array $values);
 
+    /**
+     * @return $this
+     */
     public function validateResponseStatusCode(int $statusCode);
 }
