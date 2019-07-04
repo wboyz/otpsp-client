@@ -13,19 +13,9 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 
-class OtpSimplePayClient implements LoggerAwareInterface
+class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInterface
 {
     use LoggerAwareTrait;
-
-    const RETURN_CODE_SUCCESS = '000';
-
-    const RETURN_CODE_SUCCESS_1 = '001';
-
-    const STATUS_CODE_SUCCESS = 1;
-
-    const STATUS_CODE_NOT_FOUND = 5011;
-
-    const CONTROL_KEY = 'ctrl';
 
     /**
      * @var \Cheppers\OtpspClient\Checksum
