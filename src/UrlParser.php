@@ -12,7 +12,7 @@ class UrlParser
     public function getUrlQueryVariable(string $url, string $key)
     {
         $query = parse_url($url, PHP_URL_QUERY);
-        if ($query === false) {
+        if (!$query) {
             return null;
         }
 
