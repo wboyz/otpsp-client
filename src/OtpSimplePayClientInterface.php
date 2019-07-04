@@ -2,9 +2,11 @@
 
 namespace Cheppers\OtpspClient;
 
+use Cheppers\OtpspClient\DataType\Backref;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
+use Cheppers\OtpspClient\DataType\Ipn;
 
 interface OtpSimplePayClientInterface
 {
@@ -62,4 +64,8 @@ interface OtpSimplePayClientInterface
      * @return $this
      */
     public function validateResponseStatusCode(int $statusCode);
+
+    public function parseBackRefRequest(string $url, string $body): Backref;
+
+    public function parseInstantPaymentNotificationRequest(string $url, string $body): Ipn;
 }

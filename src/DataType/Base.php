@@ -21,7 +21,32 @@ class Base
         'STATUS_NAME' => 'statusName',
         'IRN_DATE' => 'irnDate',
         'IDN_DATE' => 'idnDate',
+        'RC' => 'returnCode',
+        'RT' => 'returnText',
+        '3dsecure' => 'secure',
+        'date' => 'date',
+        'payrefno' => 'payRefNo',
+        'ctrl' => 'ctrl',
+        'ORDERSTATUS' => 'orderStatus',
+        'IPN_PID' => 'ipnPId',
+        'IPN_PNAME' => 'ipnPName',
+        'IPN_DATE' => 'ipnDate',
+        'HASH' => 'hash',
     ];
+
+    public $refNoExt = '';
+
+    public $refNo = '';
+
+    public $orderStatus= '';
+
+    public $ipnPId = '';
+
+    public $ipnPName = '';
+
+    public $ipnDate = '';
+
+    public $hash = '';
 
     public static function __set_state($values)
     {

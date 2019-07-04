@@ -4,12 +4,13 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\Tests\Unit;
 
+use Cheppers\OtpspClient\DataType\Backref;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
+use Cheppers\OtpspClient\DataType\Ipn;
 use Cheppers\OtpspClient\OtpSimplePayClient;
 use Cheppers\OtpspClient\Checksum;
-use Cheppers\OtpspClient\Utils;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
@@ -759,5 +760,84 @@ class OtpSimplePayClientTest extends TestCase
             ->isPaymentSuccess($returnCode);
 
         static::assertSame($expected, $actual);
+    }
+
+    public function casesParseBackRefRequest()
+    {
+        return [
+            'query string test' => [
+                Backref::__set_state([
+                    'RC' => '000',
+                    'RT' => '000 | OK',
+                    '3dsecure' => 'NO',
+                    'date' => '2016-04-20 14:57:38',
+                    'payrefno' => '99016530',
+                    'ctrl' => 'a5a268fd200eaef93e87a3f1403ce65f',
+                ]),
+                'https://weboldalam.tld/backref.php'
+                . '?order_ref=101010514611570269664&order_currency=HUF&RC=000'
+                . '&RT=000+%7C+OK&3dsecure=NO&date=2016-04-20+14%3A57%3A38'
+                . '&payrefno=99016530&ctrl=a5a268fd200eaef93e87a3f1403ce65f',
+                '',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesParseBackRefRequest
+     */
+    public function testParseBackRefRequest(Backref $expected, string $url, string $body)
+    {
+        $client = new Client();
+        $serializer = new Checksum();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->parseBackRefRequest($url, $body);
+
+        static::assertEquals($expected, $actual);
+    }
+
+    public function casesParseInstantPaymentNotificationRequest()
+    {
+        return [
+            'test1' => [
+                Ipn::__set_state([
+                    'REFNO' => '1234',
+                    'REFNOEXT' => '1111',
+                    'ORDERSTATUS' => 'ok',
+                    'IPN_PID' => [
+                        '55',
+                        '66',
+                    ],
+                    'IPN_PNAME' => [
+                        'hello',
+                        'there',
+                    ],
+                    'IPN_DATE' => '20170214085902',
+                    'HASH' => 'myHash',
+                ]),
+                '',
+                'REFNO=1234&REFNOEXT=1111&ORDERSTATUS=ok'
+                . '&IPN_PID[0]=55&IPN_PID[1]=66'
+                . '&IPN_PNAME[0]=hello&IPN_PNAME[1]=there'
+                . '&IPN_DATE=20170214085902&HASH=myHash'
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesParseInstantPaymentNotificationRequest
+     */
+    public function testParseInstantPaymentNotificationRequest(Ipn $expected, string $url, string $body)
+    {
+        $client = new Client();
+        $serializer = new Checksum();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->parseInstantPaymentNotificationRequest($url, $body);
+
+        static::assertEquals($expected, $actual);
     }
 }

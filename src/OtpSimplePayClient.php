@@ -4,9 +4,11 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient;
 
+use Cheppers\OtpspClient\DataType\Backref;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
+use Cheppers\OtpspClient\DataType\Ipn;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use Psr\Log\LoggerAwareInterface;
@@ -499,11 +501,26 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         return $this;
     }
 
-    public function parseBackRefRequest(string $url, string $body)
+    /**
+     * {@inheritdoc}
+     */
+    public function parseBackRefRequest(string $url, string $body): Backref
     {
+        $values = [];
+        $queryString = parse_url($url, PHP_URL_QUERY);
+        parse_str($queryString, $values);
+
+        return Backref::__set_state($values);
     }
 
-    public function parseInstantPaymentNotificationRequest(string $url, string $body)
+    /**
+     * {@inheritdoc}
+     */
+    public function parseInstantPaymentNotificationRequest(string $url, string $body): Ipn
     {
+        $values = [];
+        parse_str($body, $values);
+
+        return Ipn::__set_state($values);
     }
 }
