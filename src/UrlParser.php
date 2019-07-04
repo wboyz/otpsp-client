@@ -6,32 +6,80 @@ namespace Cheppers\OtpspClient;
 
 class UrlParser
 {
-    public function getUrlQueryVariable(string $url, string $variable): string
+    /**
+     * @return array\string\null
+     */
+    public function getUrlQueryVariable(string $url, string $key)
     {
-        $queryVariables = $this->getUrlQueryVariables(parse_url($url));
-
-        return $queryVariables[$variable];
-    }
-
-    public function getUrlQueryVariables(array $urlArray): array
-    {
-        $queryVariables = [];
-        parse_str($urlArray['query'], $queryVariables);
-
-        return $queryVariables;
-    }
-
-    public function removeQueryVariable(string $url, string $variable): string
-    {
-        $urlArray = parse_url($url);
-        $queryVariables = $this->getUrlQueryVariables($urlArray);
-        unset($queryVariables[$variable]);
-        $urlArray['query'] = http_build_query($queryVariables);
-
-        if (isset($urlArray['port'])) {
-            return $urlArray['scheme'] . '://' . $urlArray['host'] . ':'
-                . $urlArray['port'] . $urlArray['path'] . '?' . $urlArray['query'];
+        $query = parse_url($url, PHP_URL_QUERY);
+        if ($query === false) {
+            return null;
         }
-        return $urlArray['scheme'] . '://' . $urlArray['host'] . $urlArray['path'] . '?' . $urlArray['query'];
+
+        $values =[];
+        parse_str($query, $values);
+
+        return array_key_exists($key, $values) ? $values[$key] : null;
+    }
+
+    public function removeQueryVariable(string $url, string $key): string
+    {
+        $parts = parse_url($url);
+        $parts += ['query' => ''];
+        parse_str($parts['query'], $parts['query']);
+
+        unset($parts['query'][$key]);
+
+        return $this->buildUrl($parts);
+    }
+
+    public function buildUrl(array $parts): string
+    {
+        $parts += [
+            'scheme' => '',
+            'user' => '',
+            'pass' => '',
+            'host' => '',
+            'port' => '',
+            'path' => '',
+            'query' => '',
+            'fragment' => '',
+        ];
+
+        if (is_array($parts['query'])) {
+            $parts['query'] = http_build_query($parts['query']);
+        }
+
+        $url = ($parts['scheme'] ?? 'http') . '://';
+        if (strlen($parts['user']) !== 0) {
+            $url .= urlencode($parts['user']);
+
+            if (strlen($parts['pass']) !== 0) {
+                $url .= ':' . urlencode($parts['pass']);
+            }
+
+            $url .= '@';
+        }
+
+
+        $url .= $parts['host'];
+
+        if ($parts['port']) {
+            $url .= ':' . $parts['port'];
+        }
+
+        if ($parts['path']) {
+            $url .= '/' . $parts['path'];
+        }
+
+        if ($parts['query']) {
+            $url .= '?' . $parts['query'];
+        }
+
+        if ($parts['fragment']) {
+            $url .= '#' . $parts['fragment'];
+        }
+
+        return $url;
     }
 }

@@ -9,6 +9,7 @@ use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
 use Cheppers\OtpspClient\OtpSimplePayClient;
 use Cheppers\OtpspClient\Checksum;
+use Cheppers\OtpspClient\Utils;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
@@ -91,12 +92,13 @@ class OtpSimplePayClientTest extends TestCase
             ->getMock();
         $serializer
             ->expects($this->any())
-            ->method('encode')
+            ->method('calculate')
             ->willReturn('myHash');
 
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        $actual = (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantOrderStatusPost($refNoExt);
@@ -180,15 +182,16 @@ class OtpSimplePayClientTest extends TestCase
             ->getMock();
         $serializer
             ->expects($this->any())
-            ->method('encode')
+            ->method('calculate')
             ->willReturn('myHash');
 
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantOrderStatusPost($refNoExt);
@@ -246,12 +249,13 @@ class OtpSimplePayClientTest extends TestCase
             ->getMock();
         $serializer
             ->expects($this->any())
-            ->method('encode')
+            ->method('calculate')
             ->willReturn('myHash');
 
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        $actual = (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantRefundNotificationPost(
@@ -338,15 +342,16 @@ class OtpSimplePayClientTest extends TestCase
             ->getMock();
         $serializer
             ->expects($this->any())
-            ->method('encode')
+            ->method('calculate')
             ->willReturn('myHash');
 
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantRefundNotificationPost($orderRef, $orderAmount, $orderCurrency, $refundAmount);
@@ -402,12 +407,13 @@ class OtpSimplePayClientTest extends TestCase
             ->getMock();
         $serializer
             ->expects($this->any())
-            ->method('encode')
+            ->method('calculate')
             ->willReturn('myHash');
 
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        $actual = (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantDeliveryNotificationPost(
@@ -492,15 +498,16 @@ class OtpSimplePayClientTest extends TestCase
             ->getMock();
         $serializer
             ->expects($this->any())
-            ->method('encode')
+            ->method('calculate')
             ->willReturn('myHash');
 
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
             ->instantDeliveryNotificationPost($orderRef, $orderAmount, $orderCurrency);
@@ -523,9 +530,10 @@ class OtpSimplePayClientTest extends TestCase
     {
         $client = new Client();
         $serializer = new Checksum();
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        $actual = (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->validateResponseStatusCode($statusCode);
 
         static::assertSame($expected, $actual);
@@ -552,14 +560,43 @@ class OtpSimplePayClientTest extends TestCase
     {
         $client = new Client();
         $serializer = new Checksum();
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
 
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->validateResponseStatusCode($statusCode);
+    }
+
+    public function casesValidateStatusCodeSuccess()
+    {
+        return [
+            '1 ok test' => [
+                new OtpSimplePayClient(),
+                [
+                    'STATUS_CODE' => '1',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesValidateStatusCodeSuccess
+     */
+    public function testValidateStatusCodeSuccess($expected, array $values)
+    {
+        $client = new Client();
+        $serializer = new Checksum();
+        $utils = new Utils();
+        $logger = new NullLogger();
+        $dateTime = new \DateTime();
+        $actual = (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
+            ->validateStatusCode($values);
+
+        static::assertSame($expected, $actual);
     }
 
     public function casesValidateStatusCodeFail()
@@ -586,13 +623,14 @@ class OtpSimplePayClientTest extends TestCase
     {
         $client = new Client();
         $serializer = new Checksum();
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
 
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->validateStatusCode($values);
     }
 
@@ -613,101 +651,19 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesIsInstantPaymentNotificationValid
      */
-    public function testInstantPaymentNotificationValidate(bool $expected, string $requestBody)
+    public function testIsInstantPaymentNotificationValid(bool $expected, string $requestBody)
     {
         $client = new Client();
         $serializer = new Checksum();
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        $actual = (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->isInstantPaymentNotificationValid($requestBody);
 
         static::assertSame($expected, $actual);
     }
 
-    public function casesFlatArray()
-    {
-        return [
-            'empty array' => [
-                [],
-                [],
-                []
-            ],
-            'one dimensional array, no skip' => [
-                [
-                    'bar',
-                    'bak',
-                ],
-                [
-                    'foo' => 'bar',
-                    'baz' => 'bak',
-                ],
-                [],
-            ],
-            'one dimensional array with skip' => [
-                [
-                    'bar',
-                ],
-                [
-                    'foo' => 'bar',
-                    'baz' => 'bak',
-                ],
-                [
-                    'baz'
-                ],
-            ],
-            'multi dimensional array, no skip' => [
-                [
-                    'one',
-                    'two',
-                    'three',
-                    'bak',
-                ],
-                [
-                    'foo' => [
-                        'one',
-                        'two',
-                        'three',
-                    ],
-                    'baz' => 'bak',
-                ],
-                [],
-            ],
-            'multi dimensional array with skip' => [
-                [
-                    'one',
-                    'two',
-                    'three',
-                ],
-                [
-                    'foo' => [
-                        'one',
-                        'two',
-                        'three',
-                    ],
-                    'baz' => 'bak',
-                ],
-                [
-                    'baz'
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * @dataProvider casesFlatArray
-     */
-    public function testFlatArray(array $expected, array $given, array $skip)
-    {
-        $client = new Client();
-        $serializer = new Checksum();
-        $logger = new NullLogger();
-        $dateTime = new \DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->flatArray($given, $skip);
-
-        static::assertSame($expected, $actual);
-    }
 
     public function casesGetInstantPaymentNotificationSuccessResponse()
     {
@@ -736,12 +692,13 @@ class OtpSimplePayClientTest extends TestCase
     {
         $client = new Client();
         $serializer = new Checksum();
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = $this->createMock(\DateTime::class);
         $dateTime
             ->method('format')
             ->willReturn('date');
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        $actual = (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->setIpnPostData($ipnPostData)
             ->getInstantPaymentNotificationSuccessResponse();
 
@@ -770,12 +727,13 @@ class OtpSimplePayClientTest extends TestCase
     {
         $client = new Client();
         $serializer = new Checksum();
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = $this->createMock(\DateTime::class);
         $dateTime
             ->method('format')
             ->willReturn('date');
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        $actual = (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->getInstantPaymentNotificationFailedResponse();
 
         static::assertSame($expected, $actual);
@@ -806,9 +764,10 @@ class OtpSimplePayClientTest extends TestCase
     {
         $client = new Client();
         $serializer = new Checksum();
+        $utils = new Utils();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        $actual = (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->isPaymentSuccess($returnCode);
 
         static::assertSame($expected, $actual);

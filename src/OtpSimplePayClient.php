@@ -25,10 +25,17 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     const STATUS_CODE_NOT_FOUND = 5011;
 
+    const CONTROLL_KEY = 'ctrl';
+
     /**
      * @var \Cheppers\OtpspClient\Checksum
      */
     protected $checksum;
+
+    /**
+     * @var \Cheppers\OtpspClient\Utils
+     */
+    protected $utils;
 
     /**
      * @var string
@@ -190,11 +197,13 @@ class OtpSimplePayClient implements LoggerAwareInterface
     public function __construct(
         ClientInterface $client,
         Checksum $serializer,
+        Utils $utils,
         LoggerInterface $logger,
         \DateTimeInterface $dateTime
     ) {
         $this->client = $client;
         $this->checksum = $serializer;
+        $this->utils = $utils;
         $this->setLogger($logger);
         $this->dateTime = $dateTime;
     }
@@ -216,7 +225,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'IDN_DATE' => $this->getDateTime()->format('Y-m-d H:i:s')
         ];
 
-        $body['ORDER_HASH'] = $this->checksum->encode(array_values($body), $this->getSecretKey());
+        $body['ORDER_HASH'] = $this->checksum->calculate(array_values($body), $this->getSecretKey());
 
         $request = new Request(
             'POST',
@@ -261,7 +270,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'AMOUNT' => $refundAmount
         ];
 
-        $body['ORDER_HASH'] = $this->checksum->encode(array_values($body), $this->getSecretKey());
+        $body['ORDER_HASH'] = $this->checksum->calculate(array_values($body), $this->getSecretKey());
 
         $request = new Request(
             'POST',
@@ -298,7 +307,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'REFNOEXT' => $refNoExt,
         ];
 
-        $body['HASH'] = $this->checksum->encode(array_values($body), $this->getSecretKey());
+        $body['HASH'] = $this->checksum->calculate(array_values($body), $this->getSecretKey());
 
         $request = new Request(
             'POST',
@@ -334,28 +343,6 @@ class OtpSimplePayClient implements LoggerAwareInterface
         }
 
         return InstantOrderStatus::__set_state($values);
-    }
-
-    public function flatArray(array $array = [], array $skip = []): array
-    {
-        if (count($array) === 0) {
-            return [];
-        }
-
-        $return = [];
-        foreach ($array as $name => $item) {
-            if (!in_array($name, $skip)) {
-                if (is_array($item)) {
-                    foreach ($item as $subItem) {
-                        $return[] = $subItem;
-                    }
-                } elseif (!is_array($item)) {
-                    $return[] = $item;
-                }
-            }
-        }
-
-        return $return;
     }
 
     public function parseResponseBody(string $xml): array
@@ -414,7 +401,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
         $calculatedHash = $this
             ->checksum
-            ->encode($this->flatArray($this->ipnPostData, ['HASH']), $this->getSecretKey());
+            ->calculate($this->utils->flatArray($this->ipnPostData, ['HASH']), $this->getSecretKey());
 
         return $calculatedHash === $this->ipnPostData['HASH'];
     }
@@ -429,7 +416,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             $serverDate,
         ];
 
-        $hash = $this->checksum->encode($hashArray, $this->getSecretKey());
+        $hash = $this->checksum->calculate($hashArray, $this->getSecretKey());
         $responseBody = '<EPAYMENT>' . $serverDate . '|' . $hash . '</EPAYMENT>';
 
         return [
@@ -480,7 +467,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     public function validateHash(string $hash, array $values)
     {
-        if ($hash !== $this->checksum->encode($values, $this->getSecretKey())) {
+        if ($hash !== $this->checksum->calculate($values, $this->getSecretKey())) {
             throw new \Exception('Invalid hash', 1);
         }
     }
