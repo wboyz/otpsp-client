@@ -7,7 +7,7 @@ namespace Cheppers\OtpspClient;
 class UrlParser
 {
     /**
-     * @return array\string\null
+     * @return array|string|null
      */
     public function getUrlQueryVariable(string $url, string $key)
     {
