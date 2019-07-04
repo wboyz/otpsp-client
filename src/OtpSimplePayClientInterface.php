@@ -44,7 +44,7 @@ interface OtpSimplePayClientInterface
 
     public function isInstantPaymentNotificationValid(string $requestBody): bool;
 
-    public function getInstantPaymentNotificationSuccessResponse(): array;
+    public function getInstantPaymentNotificationSuccessResponse(Ipn $ipn): array;
 
     public function getInstantPaymentNotificationFailedResponse(): array;
 
@@ -65,7 +65,7 @@ interface OtpSimplePayClientInterface
      */
     public function validateResponseStatusCode(int $statusCode);
 
-    public function parseBackRefRequest(string $url, string $body): Backref;
+    public function parseBackRefRequest(string $url): Backref;
 
-    public function parseInstantPaymentNotificationRequest(string $url, string $body): Ipn;
+    public function parseInstantPaymentNotificationRequest(string $body): Ipn;
 }

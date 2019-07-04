@@ -128,26 +128,6 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     }
 
     /**
-     * @var array
-     */
-    protected $ipnPostData = [];
-
-    public function getIpnPostData(): array
-    {
-        return $this->ipnPostData;
-    }
-
-    /**
-     * @return $this
-     */
-    public function setIpnPostData(array $ipnPostData)
-    {
-        $this->ipnPostData = $ipnPostData;
-
-        return $this;
-    }
-
-    /**
      * @var string[]
      */
     protected $supportedLanguages = [
@@ -393,29 +373,30 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
      */
     public function isInstantPaymentNotificationValid(string $requestBody): bool
     {
-        parse_str($requestBody, $this->ipnPostData);
+        $ipnPostData = [];
+        parse_str($requestBody, $ipnPostData);
 
-        if (count($this->ipnPostData) < 1 || !array_key_exists('REFNOEXT', $this->ipnPostData)) {
+        if (count($ipnPostData) < 1 || !array_key_exists('REFNOEXT', $ipnPostData)) {
             return false;
         }
 
         $calculatedHash = $this
             ->checksum
-            ->calculate(Utils::flatArray($this->ipnPostData, ['HASH']), $this->getSecretKey());
+            ->calculate(Utils::flatArray($ipnPostData, ['HASH']), $this->getSecretKey());
 
-        return $calculatedHash === $this->ipnPostData['HASH'];
+        return $calculatedHash === $ipnPostData['HASH'];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getInstantPaymentNotificationSuccessResponse(): array
+    public function getInstantPaymentNotificationSuccessResponse(Ipn $ipn): array
     {
         $serverDate = $this->getDateTime()->format('YmdHis');
         $hashArray = [
-            $this->ipnPostData['IPN_PID'][0],
-            $this->ipnPostData['IPN_PNAME'][0],
-            $this->ipnPostData['IPN_DATE'],
+            $ipn->ipnPId[0],
+            $ipn->ipnPName[0],
+            $ipn->ipnDate,
             $serverDate,
         ];
 
@@ -436,7 +417,6 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
      */
     public function getInstantPaymentNotificationFailedResponse(): array
     {
-
         return [
             'headers' => [
                 'Content-Type' => 'text/plain',
@@ -504,7 +484,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     /**
      * {@inheritdoc}
      */
-    public function parseBackRefRequest(string $url, string $body): Backref
+    public function parseBackRefRequest(string $url): Backref
     {
         $values = [];
         $queryString = parse_url($url, PHP_URL_QUERY);
@@ -516,7 +496,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     /**
      * {@inheritdoc}
      */
-    public function parseInstantPaymentNotificationRequest(string $url, string $body): Ipn
+    public function parseInstantPaymentNotificationRequest(string $body): Ipn
     {
         $values = [];
         parse_str($body, $values);

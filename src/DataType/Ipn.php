@@ -20,7 +20,7 @@ class Ipn extends Base
     /**
      * @var string
      */
-    public $orderStatus= '';
+    public $orderStatus = '';
 
     /**
      * @var array

@@ -668,11 +668,11 @@ class OtpSimplePayClientTest extends TestCase
                     'body' => '<EPAYMENT>date|20cc2d06b49a9082117397c4ecd6496c</EPAYMENT>',
                     'statusCode' => 200,
                 ],
-                [
+                Ipn::__set_state([
                     'IPN_PID' => '1',
                     'IPN_PNAME' => '2',
                     'IPN_DATE' => '3',
-                ],
+                ]),
             ],
         ];
     }
@@ -680,7 +680,7 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesGetInstantPaymentNotificationSuccessResponse
      */
-    public function testGetInstantPaymentNotificationSuccessResponse(array $expected, array $ipnPostData)
+    public function testGetInstantPaymentNotificationSuccessResponse(array $expected, Ipn $ipn)
     {
         $client = new Client();
         $serializer = new Checksum();
@@ -690,8 +690,7 @@ class OtpSimplePayClientTest extends TestCase
             ->method('format')
             ->willReturn('date');
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->setIpnPostData($ipnPostData)
-            ->getInstantPaymentNotificationSuccessResponse();
+            ->getInstantPaymentNotificationSuccessResponse($ipn);
 
         static::assertSame($expected, $actual);
     }
@@ -778,7 +777,6 @@ class OtpSimplePayClientTest extends TestCase
                 . '?order_ref=101010514611570269664&order_currency=HUF&RC=000'
                 . '&RT=000+%7C+OK&3dsecure=NO&date=2016-04-20+14%3A57%3A38'
                 . '&payrefno=99016530&ctrl=a5a268fd200eaef93e87a3f1403ce65f',
-                '',
             ],
         ];
     }
@@ -786,14 +784,14 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesParseBackRefRequest
      */
-    public function testParseBackRefRequest(Backref $expected, string $url, string $body)
+    public function testParseBackRefRequest(Backref $expected, string $url)
     {
         $client = new Client();
         $serializer = new Checksum();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->parseBackRefRequest($url, $body);
+            ->parseBackRefRequest($url);
 
         static::assertEquals($expected, $actual);
     }
@@ -817,7 +815,6 @@ class OtpSimplePayClientTest extends TestCase
                     'IPN_DATE' => '20170214085902',
                     'HASH' => 'myHash',
                 ]),
-                '',
                 'REFNO=1234&REFNOEXT=1111&ORDERSTATUS=ok'
                 . '&IPN_PID[0]=55&IPN_PID[1]=66'
                 . '&IPN_PNAME[0]=hello&IPN_PNAME[1]=there'
@@ -829,14 +826,14 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesParseInstantPaymentNotificationRequest
      */
-    public function testParseInstantPaymentNotificationRequest(Ipn $expected, string $url, string $body)
+    public function testParseInstantPaymentNotificationRequest(Ipn $expected, string $body)
     {
         $client = new Client();
         $serializer = new Checksum();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->parseInstantPaymentNotificationRequest($url, $body);
+            ->parseInstantPaymentNotificationRequest($body);
 
         static::assertEquals($expected, $actual);
     }
