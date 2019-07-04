@@ -498,4 +498,12 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
 
         return $this;
     }
+
+    public function parseBackRefRequest(string $url, string $body)
+    {
+    }
+
+    public function parseInstantPaymentNotificationRequest(string $url, string $body)
+    {
+    }
 }
