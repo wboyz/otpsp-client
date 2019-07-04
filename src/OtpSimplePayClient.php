@@ -198,6 +198,9 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         $this->dateTime = $dateTime;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function instantDeliveryNotificationPost(
         string $orderRef,
         string $orderAmount,
@@ -241,6 +244,9 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         return InstantDeliveryNotification::__set_state($values);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function instantRefundNotificationPost(
         string $orderRef,
         string $orderAmount,
@@ -286,6 +292,9 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         return InstantRefundNotification::__set_state($values);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function instantOrderStatusPost(string $refNoExt): ?InstantOrderStatus
     {
         $header = [
@@ -335,6 +344,9 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         return InstantOrderStatus::__set_state($values);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function parseResponseBody(string $xml): array
     {
         $doc = new \DOMDocument();
@@ -356,7 +368,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     }
 
     /**
-     * @return string[]
+     * {@inheritdoc}
      */
     public function parseResponseString(string $xml, string $dateKey): array
     {
@@ -381,6 +393,9 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         return $this->getBaseUri() . "/$path";
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isInstantPaymentNotificationValid(string $requestBody): bool
     {
         parse_str($requestBody, $this->ipnPostData);
@@ -396,6 +411,9 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         return $calculatedHash === $this->ipnPostData['HASH'];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getInstantPaymentNotificationSuccessResponse(): array
     {
         $serverDate = $this->getDateTime()->format('YmdHis');
@@ -418,6 +436,9 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getInstantPaymentNotificationFailedResponse(): array
     {
 
@@ -441,11 +462,17 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isPaymentSuccess(string $returnCode): bool
     {
         return in_array($returnCode, $this->getSuccessReturnCodes());
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function validateStatusCode(array $values)
     {
         if ($values['STATUS_CODE'] != static::STATUS_CODE_SUCCESS) {
@@ -455,6 +482,9 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         return $this;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function validateHash(string $hash, array $values)
     {
         if ($hash !== $this->checksum->calculate($values, $this->getSecretKey())) {
@@ -462,6 +492,9 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function validateResponseStatusCode(int $statusCode)
     {
         if ($statusCode < 200 || $statusCode >= 300) {
