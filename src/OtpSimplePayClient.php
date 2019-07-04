@@ -25,7 +25,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     const STATUS_CODE_NOT_FOUND = 5011;
 
-    const CONTROLL_KEY = 'ctrl';
+    const CONTROL_KEY = 'ctrl';
 
     /**
      * @var \Cheppers\OtpspClient\Checksum

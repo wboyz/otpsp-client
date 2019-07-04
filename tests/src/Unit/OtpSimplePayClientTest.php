@@ -575,7 +575,7 @@ class OtpSimplePayClientTest extends TestCase
     {
         return [
             '1 ok test' => [
-                new OtpSimplePayClient(),
+                OtpSimplePayClient::class,
                 [
                     'STATUS_CODE' => '1',
                 ],
@@ -596,7 +596,7 @@ class OtpSimplePayClientTest extends TestCase
         $actual = (new OtpSimplePayClient($client, $serializer, $utils, $logger, $dateTime))
             ->validateStatusCode($values);
 
-        static::assertSame($expected, $actual);
+        static::assertInstanceOf($expected, $actual);
     }
 
     public function casesValidateStatusCodeFail()
