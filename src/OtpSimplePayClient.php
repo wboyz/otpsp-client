@@ -4,23 +4,25 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient;
 
+use Cheppers\OtpspClient\DataType\Backref;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
+use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 
-class OtpSimplePayClient implements LoggerAwareInterface
+class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInterface
 {
     use LoggerAwareTrait;
 
     /**
-     * @var \Cheppers\OtpspClient\Serializer|null
+     * @var \Cheppers\OtpspClient\Checksum
      */
-    protected $serializer = null;
+    protected $checksum;
 
     /**
      * @var string
@@ -126,58 +128,24 @@ class OtpSimplePayClient implements LoggerAwareInterface
     }
 
     /**
-     * @var string
-     */
-    protected $backRefUrl = '';
-
-    public function getBackRefUrl(): string
-    {
-        return $this->backRefUrl;
-    }
-
-    public function setBackRefUrl(string $backRefUrl)
-    {
-        $this->backRefUrl = $backRefUrl;
-
-        return $this;
-    }
-
-    /**
-     * @var array
-     */
-    protected $ipnPostData = [];
-
-    public function getIpnPostData(): array
-    {
-        return $this->ipnPostData;
-    }
-
-    /**
-     * @return $this
-     */
-    public function setIpnPostData(array $ipnPostData)
-    {
-        $this->ipnPostData = $ipnPostData;
-
-        return $this;
-    }
-
-    /**
-     * @var array
+     * @var string[]
      */
     protected $supportedLanguages = [
-        'CZ',
-        'DE',
-        'EN',
-        'ES',
-        'IT',
-        'HR',
-        'HU',
-        'PL',
-        'RO',
-        'SK',
+        'cz',
+        'de',
+        'en',
+        'es',
+        'it',
+        'hr',
+        'hu',
+        'pl',
+        'ro',
+        'sk',
     ];
 
+    /**
+     * @return string[]
+     */
     public function getSupportedLanguages(): array
     {
         return $this->supportedLanguages;
@@ -195,16 +163,19 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     public function __construct(
         ClientInterface $client,
-        Serializer $serializer,
+        Checksum $serializer,
         LoggerInterface $logger,
         \DateTimeInterface $dateTime
     ) {
         $this->client = $client;
-        $this->serializer = $serializer;
+        $this->checksum = $serializer;
         $this->setLogger($logger);
         $this->dateTime = $dateTime;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function instantDeliveryNotificationPost(
         string $orderRef,
         string $orderAmount,
@@ -222,7 +193,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'IDN_DATE' => $this->getDateTime()->format('Y-m-d H:i:s')
         ];
 
-        $body['ORDER_HASH'] = $this->serializer->encode(array_values($body), $this->getSecretKey());
+        $body['ORDER_HASH'] = $this->checksum->calculate(array_values($body), $this->getSecretKey());
 
         $request = new Request(
             'POST',
@@ -248,6 +219,9 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return InstantDeliveryNotification::__set_state($values);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function instantRefundNotificationPost(
         string $orderRef,
         string $orderAmount,
@@ -267,7 +241,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'AMOUNT' => $refundAmount
         ];
 
-        $body['ORDER_HASH'] = $this->serializer->encode(array_values($body), $this->getSecretKey());
+        $body['ORDER_HASH'] = $this->checksum->calculate(array_values($body), $this->getSecretKey());
 
         $request = new Request(
             'POST',
@@ -293,6 +267,9 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return InstantRefundNotification::__set_state($values);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function instantOrderStatusPost(string $refNoExt): ?InstantOrderStatus
     {
         $header = [
@@ -304,7 +281,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'REFNOEXT' => $refNoExt,
         ];
 
-        $body['HASH'] = $this->serializer->encode(array_values($body), $this->getSecretKey());
+        $body['HASH'] = $this->checksum->calculate(array_values($body), $this->getSecretKey());
 
         $request = new Request(
             'POST',
@@ -328,7 +305,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
         if (array_key_exists('ERROR_CODE', $values)) {
             switch ($values['ERROR_CODE']) {
-                case '5011':
+                case static::STATUS_CODE_NOT_FOUND:
                     // Not found.
                     return null;
             }
@@ -342,28 +319,9 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return InstantOrderStatus::__set_state($values);
     }
 
-    public function flatArray(array $array = [], array $skip = []): array
-    {
-        if (count($array) === 0) {
-            return [];
-        }
-
-        $return = [];
-        foreach ($array as $name => $item) {
-            if (!in_array($name, $skip)) {
-                if (is_array($item)) {
-                    foreach ($item as $subItem) {
-                        $return[] = $subItem;
-                    }
-                } elseif (!is_array($item)) {
-                    $return[] = $item;
-                }
-            }
-        }
-
-        return $return;
-    }
-
+    /**
+     * {@inheritdoc}
+     */
     public function parseResponseBody(string $xml): array
     {
         $doc = new \DOMDocument();
@@ -377,10 +335,17 @@ class OtpSimplePayClient implements LoggerAwareInterface
             $values[$node->nodeName] = $node->textContent;
         }
 
+        if (array_key_exists('STATUS_CODE', $values)) {
+            settype($values['STATUS_CODE'], 'int');
+        }
+
         return $values;
     }
 
-    public function parseResponseString(string $xml, string $dateKey)
+    /**
+     * {@inheritdoc}
+     */
+    public function parseResponseString(string $xml, string $dateKey): array
     {
         $ePayment = [
             'ORDER_REF',
@@ -403,69 +368,139 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $this->getBaseUri() . "/$path";
     }
 
-    public function instantPaymentNotificationValidate(string $requestBody): bool
+    /**
+     * {@inheritdoc}
+     */
+    public function isInstantPaymentNotificationValid(string $requestBody): bool
     {
-        parse_str($requestBody, $this->ipnPostData);
+        $ipnPostData = [];
+        parse_str($requestBody, $ipnPostData);
 
-        if (count($this->ipnPostData) < 1 || !array_key_exists('REFNOEXT', $this->ipnPostData)) {
+        if (count($ipnPostData) < 1 || !array_key_exists('REFNOEXT', $ipnPostData)) {
             return false;
         }
 
         $calculatedHash = $this
-            ->serializer
-            ->encode($this->flatArray($this->ipnPostData, ['HASH']), $this->getSecretKey());
+            ->checksum
+            ->calculate(Utils::flatArray($ipnPostData, ['HASH']), $this->getSecretKey());
 
-        return $calculatedHash === $this->ipnPostData['HASH'];
+        return $calculatedHash === $ipnPostData['HASH'];
     }
 
-    public function getInstantPaymentNotificationResponse(): array
+    /**
+     * {@inheritdoc}
+     */
+    public function getInstantPaymentNotificationSuccessResponse(InstantPaymentNotification $ipn): array
     {
         $serverDate = $this->getDateTime()->format('YmdHis');
         $hashArray = [
-            $this->ipnPostData['IPN_PID'][0],
-            $this->ipnPostData['IPN_PNAME'][0],
-            $this->ipnPostData['IPN_DATE'],
+            $ipn->ipnPId[0],
+            $ipn->ipnPName[0],
+            $ipn->ipnDate,
             $serverDate,
         ];
 
-        $hash = $this->serializer->encode($hashArray, $this->getSecretKey());
+        $hash = $this->checksum->calculate($hashArray, $this->getSecretKey());
         $responseBody = '<EPAYMENT>' . $serverDate . '|' . $hash . '</EPAYMENT>';
 
         return [
-            'headers' => [],
+            'headers' => [
+                'Content-Type' => 'application/xml',
+            ],
             'body' => $responseBody,
             'statusCode' => 200,
         ];
     }
 
-    public function checkBackRefCtrl(string $ctrl): bool
+    /**
+     * {@inheritdoc}
+     */
+    public function getInstantPaymentNotificationFailedResponse(): array
     {
-        return ($ctrl === $this->serializer->decode($this->getBackRefUrl(), $this->secretKey));
+        return [
+            'headers' => [
+                'Content-Type' => 'text/plain',
+            ],
+            'body' => 'Instant Payment Notification cannot be processed',
+            'statusCode' => 503,
+        ];
     }
 
+    /**
+     * @return string[]
+     */
+    public function getSuccessReturnCodes(): array
+    {
+        return [
+            static::RETURN_CODE_SUCCESS,
+            static::RETURN_CODE_SUCCESS_1,
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function isPaymentSuccess(string $returnCode): bool
     {
-        return $returnCode === '000' || $returnCode === '001';
+        return in_array($returnCode, $this->getSuccessReturnCodes());
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function validateStatusCode(array $values)
     {
-        if ($values['STATUS_CODE'] !== '1') {
-            throw new \Exception('Invalid status code', 1);
+        if ($values['STATUS_CODE'] != static::STATUS_CODE_SUCCESS) {
+            throw new \Exception($values['STATUS_NAME'], 1);
         }
+
+        return $this;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function validateHash(string $hash, array $values)
     {
-        if ($hash !== $this->serializer->encode($values, $this->getSecretKey())) {
+        if ($hash !== $this->checksum->calculate($values, $this->getSecretKey())) {
             throw new \Exception('Invalid hash', 1);
         }
+
+        return $this;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function validateResponseStatusCode(int $statusCode)
     {
         if ($statusCode < 200 || $statusCode >= 300) {
             throw new \Exception('Invalid response code', 1);
         }
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function parseBackRefRequest(string $url): Backref
+    {
+        $values = [];
+        $queryString = parse_url($url, PHP_URL_QUERY);
+        parse_str($queryString, $values);
+
+        return Backref::__set_state($values);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function parseInstantPaymentNotificationRequest(string $body): InstantPaymentNotification
+    {
+        $values = [];
+        parse_str($body, $values);
+
+        return InstantPaymentNotification::__set_state($values);
     }
 }

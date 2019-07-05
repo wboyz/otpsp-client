@@ -22,13 +22,13 @@ class InstantRefundNotificationTest extends TestBase
             'basic' => [
                 [
                     'orderRef' => 'a',
-                    'statusCode' => 'b',
+                    'statusCode' => 42,
                     'statusName' => 'c',
                     'irnDate' => 'd',
                 ],
                 [
                     'ORDER_REF' => 'a',
-                    'STATUS_CODE' => 'b',
+                    'STATUS_CODE' => '42',
                     'STATUS_NAME' => 'c',
                     'IRN_DATE' => 'd',
                 ],
