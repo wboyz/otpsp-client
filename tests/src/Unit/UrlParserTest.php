@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Cheppers\OtpspClient\Tests\Unit;
 
 use Cheppers\OtpspClient\UrlParser;
@@ -70,6 +72,12 @@ class UrlParserTest extends TestCase
     public function casesBuildUrl()
     {
         return [
+            'minimal' => [
+                'http://hostname',
+                [
+                    'host' => 'hostname',
+                ],
+            ],
             'full test' => [
                 'http://username:password@hostname:9090/path?arg=value#anchor',
                 [
@@ -93,6 +101,6 @@ class UrlParserTest extends TestCase
     {
         $actual = (new UrlParser())->buildUrl($parts);
 
-        static::assertSame($expected, $actual);
+        static::assertSame($expected, (new UrlParser())->buildUrl($parts));
     }
 }

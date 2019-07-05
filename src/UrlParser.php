@@ -1,11 +1,32 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient;
 
 class UrlParser
 {
+
+    /**
+     * @var string
+     */
+    protected $defaultScheme = 'http';
+
+    public function getDefaultScheme(): string
+    {
+        return $this->defaultScheme;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setDefaultScheme(string $defaultScheme)
+    {
+        $this->defaultScheme = $defaultScheme;
+
+        return $this;
+    }
+
     /**
      * @return array|string|null
      */
@@ -50,7 +71,7 @@ class UrlParser
             $parts['query'] = http_build_query($parts['query']);
         }
 
-        $url = ($parts['scheme'] ?? 'http') . '://';
+        $url = ($parts['scheme'] ?: $this->getDefaultScheme()) . '://';
         if (strlen($parts['user']) !== 0) {
             $url .= urlencode($parts['user']);
 
@@ -69,7 +90,11 @@ class UrlParser
         }
 
         if ($parts['path']) {
-            $url .= '/' . $parts['path'];
+            if (mb_substr($parts['path'], 0, 1) !== '/') {
+                $url .= '/';
+            }
+
+            $url .= $parts['path'];
         }
 
         if ($parts['query']) {

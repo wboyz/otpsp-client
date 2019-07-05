@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\Tests\Unit;
 
@@ -8,9 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Cheppers\OtpspClient\Checksum;
 
 /**
- * Class SerializerTest
  * @covers \Cheppers\OtpspClient\Checksum
- * @package Cheppers\OtpspClient\Tests\Unit
  */
 class ChecksumTest extends TestCase
 {
@@ -35,7 +33,7 @@ class ChecksumTest extends TestCase
                     'CCVISAMC',
                 ],
                 'FxDa5w314kLlNseq2sKuVwaqZshZT5d6',
-                '51f48bfda333a8c477bbbedd18a1f787'
+                '51f48bfda333a8c477bbbedd18a1f787',
             ],
             'Real test with 2 products' => [
                 [
@@ -60,7 +58,7 @@ class ChecksumTest extends TestCase
                     'CCVISAMC',
                 ],
                 'FxDa5w314kLlNseq2sKuVwaqZshZT5d6',
-                '6ed529adde57070bf64ce05efa559307'
+                '6ed529adde57070bf64ce05efa559307',
             ],
         ];
     }
@@ -70,10 +68,9 @@ class ChecksumTest extends TestCase
      */
     public function testEncodeSuccess(array $data, string $secretKey, string $expected): void
     {
-        $serializer = new Checksum();
-        $result = $serializer->calculate($data, $secretKey);
+        $actual = (new Checksum())->calculate($data, $secretKey);
 
-        static::assertSame($expected, $result);
+        static::assertSame($expected, $actual);
     }
 
     public function casesEncodeFail(): array
@@ -88,7 +85,7 @@ class ChecksumTest extends TestCase
                     'test2' => [
                         'test data3',
                         'test data4',
-                    ]
+                    ],
                 ],
                 '',
             ],
@@ -100,11 +97,11 @@ class ChecksumTest extends TestCase
      */
     public function testEncodeFail(array $data, string $secretKey): void
     {
-        $serializer = new Checksum();
-
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Data can not be multidimensional array.');
-
-        $serializer->calculate($data, $secretKey);
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Data can not be multidimensional array.'
+        );
+        $this->expectExceptionCode(1);
+        (new Checksum())->calculate($data, $secretKey);
     }
 }
