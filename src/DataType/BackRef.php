@@ -4,8 +4,22 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
-class Backref extends Base
+use Cheppers\OtpspClient\OtpSimplePayClientInterface;
+
+class BackRef extends Base
 {
+
+    /**
+     * {@inheritdoc}
+     */
+    protected $excludeFromExport = [
+        OtpSimplePayClientInterface::CONTROL_KEY,
+    ];
+
+    /**
+     * @var string
+     */
+    public $refNoExt = '';
 
     /**
      * @var string
@@ -20,7 +34,7 @@ class Backref extends Base
     /**
      * @var string
      */
-    public $secure= '';
+    public $secure = '';
 
     /**
      * @var string

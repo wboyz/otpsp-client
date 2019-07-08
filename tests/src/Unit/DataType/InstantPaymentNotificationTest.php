@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 
-use Cheppers\OtpspClient\DataType\InstantOrderStatus;
+use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 
 /**
  * @covers \Cheppers\OtpspClient\DataType\InstantPaymentNotification<extended>
@@ -14,7 +14,7 @@ class InstantPaymentNotificationTest extends TestBase
     /**
      * {@inheritdoc}
      */
-    protected $className = InstantOrderStatus::class;
+    protected $className = InstantPaymentNotification::class;
 
     public function casesSetState(): array
     {

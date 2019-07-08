@@ -7,7 +7,7 @@ namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 
 /**
- * @covers \Cheppers\OtpspClient\DataType\InstantOrderStatus<extended>
+ * @covers \Cheppers\OtpspClient\DataType\InstantDeliveryNotification<extended>
  */
 class InstantDeliveryNotificationTest extends TestBase
 {

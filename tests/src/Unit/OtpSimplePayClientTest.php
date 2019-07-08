@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\Tests\Unit;
 
-use Cheppers\OtpspClient\DataType\Backref;
+use Cheppers\OtpspClient\DataType\BackRef;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
@@ -95,7 +95,7 @@ class OtpSimplePayClientTest extends TestCase
             ->expects($this->any())
             ->method('calculate')
             ->willReturn('myHash');
-        
+
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
@@ -188,7 +188,7 @@ class OtpSimplePayClientTest extends TestCase
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        
+
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
@@ -347,7 +347,7 @@ class OtpSimplePayClientTest extends TestCase
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        
+
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
@@ -501,7 +501,7 @@ class OtpSimplePayClientTest extends TestCase
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        
+
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
@@ -765,7 +765,7 @@ class OtpSimplePayClientTest extends TestCase
     {
         return [
             'query string test' => [
-                Backref::__set_state([
+                BackRef::__set_state([
                     'RC' => '000',
                     'RT' => '000 | OK',
                     '3dsecure' => 'NO',
@@ -784,7 +784,7 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesParseBackRefRequest
      */
-    public function testParseBackRefRequest(Backref $expected, string $url)
+    public function testParseBackRefRequest(BackRef $expected, string $url)
     {
         $client = new Client();
         $serializer = new Checksum();

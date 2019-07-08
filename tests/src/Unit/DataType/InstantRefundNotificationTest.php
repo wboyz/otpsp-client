@@ -7,7 +7,7 @@ namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
 
 /**
- * @covers \Cheppers\OtpspClient\DataType\InstantOrderStatus<extended>
+ * @covers \Cheppers\OtpspClient\DataType\InstantRefundNotification<extended>
  */
 class InstantRefundNotificationTest extends TestBase
 {
