@@ -50,6 +50,7 @@ class BackRefTest extends TestBase
      */
     public function casesExportForChecksum(): array
     {
+
         return [
             'valid' => [
                 [

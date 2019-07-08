@@ -44,6 +44,7 @@ class InstantDeliveryNotificationTest extends TestBase
      */
     public function casesExportForChecksum(): array
     {
+
         return [
             'valid' => [
                 [

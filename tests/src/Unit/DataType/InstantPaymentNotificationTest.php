@@ -50,6 +50,7 @@ class InstantPaymentNotificationTest extends TestBase
      */
     public function casesExportForChecksum(): array
     {
+
         return [
            'valid' => [
                [

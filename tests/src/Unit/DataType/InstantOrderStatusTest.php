@@ -46,6 +46,7 @@ class InstantOrderStatusTest extends TestBase
      */
     public function casesExportForChecksum(): array
     {
+
         return [
             'valid' => [
                 [

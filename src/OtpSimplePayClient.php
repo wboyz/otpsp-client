@@ -371,6 +371,11 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         return $this->getBaseUri() . "/$path";
     }
 
+    public function getLiveUpdateUrl(): string
+    {
+        return $this->getUri('order/lu.php');
+    }
+
     /**
      * {@inheritdoc}
      */

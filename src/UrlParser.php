@@ -46,8 +46,7 @@ class UrlParser
     public function removeQueryVariable(string $url, string $key): string
     {
         $parts = parse_url($url);
-        $parts += ['query' => ''];
-        parse_str($parts['query'], $parts['query']);
+        parse_str($parts['query'] ?? '', $parts['query']);
 
         unset($parts['query'][$key]);
 
