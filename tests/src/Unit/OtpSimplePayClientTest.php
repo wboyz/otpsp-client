@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\Tests\Unit;
 
-use Cheppers\OtpspClient\DataType\Backref;
+use Cheppers\OtpspClient\DataType\BackRef;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
@@ -95,7 +95,7 @@ class OtpSimplePayClientTest extends TestCase
             ->expects($this->any())
             ->method('calculate')
             ->willReturn('myHash');
-        
+
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
@@ -188,7 +188,7 @@ class OtpSimplePayClientTest extends TestCase
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        
+
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
@@ -347,7 +347,7 @@ class OtpSimplePayClientTest extends TestCase
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        
+
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
@@ -501,7 +501,7 @@ class OtpSimplePayClientTest extends TestCase
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
         static::expectExceptionCode($expected['code']);
-        
+
         $logger = new NullLogger();
         $dateTime = new \DateTime();
         (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
@@ -632,7 +632,9 @@ class OtpSimplePayClientTest extends TestCase
         return [
             'valid' => [
                 true,
-                'REFNOEXT=1&HASH=bef91610dda7aabfe371623edb399f3e',
+                'REFNO=1111&REFNOEXT=1234&ORDERSTATUS=COMPLETE&IPN_PID[0]=42'
+                . '&IPN_PNAME[0]=Product_1&IPN_DATE=2016040813426'
+                . '&HASH=fc52f914533ca3f243707e1e61e91086',
             ],
             'invalid' => [
                 false,
@@ -650,10 +652,10 @@ class OtpSimplePayClientTest extends TestCase
         $serializer = new Checksum();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->isInstantPaymentNotificationValid($requestBody);
+        $simplePay = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+        $ipn = $simplePay->parseInstantPaymentNotificationRequest($requestBody);
 
-        static::assertSame($expected, $actual);
+        static::assertSame($expected, $simplePay->isValidChecksum($ipn->hash, $ipn->exportForChecksum()));
     }
 
 
@@ -765,7 +767,7 @@ class OtpSimplePayClientTest extends TestCase
     {
         return [
             'query string test' => [
-                Backref::__set_state([
+                BackRef::__set_state([
                     'RC' => '000',
                     'RT' => '000 | OK',
                     '3dsecure' => 'NO',
@@ -784,7 +786,7 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesParseBackRefRequest
      */
-    public function testParseBackRefRequest(Backref $expected, string $url)
+    public function testParseBackRefRequest(BackRef $expected, string $url)
     {
         $client = new Client();
         $serializer = new Checksum();

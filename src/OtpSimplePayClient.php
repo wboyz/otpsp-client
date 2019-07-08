@@ -4,11 +4,13 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient;
 
-use Cheppers\OtpspClient\DataType\Backref;
+use Cheppers\OtpspClient\DataType\BackRef;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
+use DateTimeInterface;
+use Exception;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use Psr\Log\LoggerAwareInterface;
@@ -32,7 +34,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     /**
      * {@inheritdoc}
      */
-    public function getBaseUri()
+    public function getBaseUri(): string
     {
         return $this->baseUri;
     }
@@ -40,7 +42,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     /**
      * {@inheritdoc}
      */
-    public function setBaseUri($value)
+    public function setBaseUri(string $value)
     {
         $this->baseUri = $value;
 
@@ -72,7 +74,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
      */
     protected $dateTime;
 
-    public function getDateTime(): \DateTimeInterface
+    public function getDateTime(): DateTimeInterface
     {
         return $this->dateTime;
     }
@@ -80,7 +82,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     /**
      * @return $this
      */
-    public function setDateTime(\DateTimeInterface $dateTime)
+    public function setDateTime(DateTimeInterface $dateTime)
     {
         $this->dateTime = $dateTime;
 
@@ -165,7 +167,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         ClientInterface $client,
         Checksum $serializer,
         LoggerInterface $logger,
-        \DateTimeInterface $dateTime
+        DateTimeInterface $dateTime
     ) {
         $this->client = $client;
         $this->checksum = $serializer;
@@ -296,7 +298,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         $this->validateResponseStatusCode($statusCode);
 
         $xml = (string) $response->getBody();
-        $values = $this->parseResponseBody($xml);
+        $values = $this->parseResponseXml($xml);
 
         $hash = $values['HASH'];
         unset($values['HASH']);
@@ -306,11 +308,10 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         if (array_key_exists('ERROR_CODE', $values)) {
             switch ($values['ERROR_CODE']) {
                 case static::STATUS_CODE_NOT_FOUND:
-                    // Not found.
                     return null;
             }
 
-            throw new \Exception(
+            throw new Exception(
                 $values['ORDER_STATUS'] ?? 'Unknown error',
                 (int) $values['ERROR_CODE']
             );
@@ -322,8 +323,9 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     /**
      * {@inheritdoc}
      */
-    public function parseResponseBody(string $xml): array
+    public function parseResponseXml(string $xml): array
     {
+        // @todo Validate with *.xsd.
         $doc = new \DOMDocument();
         $doc->loadXML($xml);
         $rootNode = $doc->childNodes->item(0);
@@ -355,6 +357,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
             'HASH',
         ];
 
+        // @todo Validate with *.xsd.
         $doc = new \DOMDocument();
         $doc->loadXML($xml);
         $rootNode = $doc->childNodes->item(0);
@@ -363,7 +366,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         return array_combine($ePayment, $values);
     }
 
-    public function getUri(string $path): string
+    protected function getUri(string $path): string
     {
         return $this->getBaseUri() . "/$path";
     }
@@ -371,20 +374,25 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     /**
      * {@inheritdoc}
      */
-    public function isInstantPaymentNotificationValid(string $requestBody): bool
+    public function parseInstantPaymentNotificationRequest(string $body): InstantPaymentNotification
     {
-        $ipnPostData = [];
-        parse_str($requestBody, $ipnPostData);
+        // @todo Parse requests by url, headers and body.
+        $values = [];
+        parse_str($body, $values);
 
-        if (count($ipnPostData) < 1 || !array_key_exists('REFNOEXT', $ipnPostData)) {
-            return false;
-        }
+        return InstantPaymentNotification::__set_state($values);
+    }
 
-        $calculatedHash = $this
+    /**
+     * {@inheritdoc}
+     */
+    public function isValidChecksum(string $expectedHash, array $values): bool
+    {
+        $actualHash = $this
             ->checksum
-            ->calculate(Utils::flatArray($ipnPostData, ['HASH']), $this->getSecretKey());
+            ->calculate($values, $this->getSecretKey());
 
-        return $calculatedHash === $ipnPostData['HASH'];
+        return $expectedHash === $actualHash;
     }
 
     /**
@@ -451,7 +459,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     public function validateStatusCode(array $values)
     {
         if ($values['STATUS_CODE'] != static::STATUS_CODE_SUCCESS) {
-            throw new \Exception($values['STATUS_NAME'], 1);
+            throw new Exception($values['STATUS_NAME'], 1);
         }
 
         return $this;
@@ -463,7 +471,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     public function validateHash(string $hash, array $values)
     {
         if ($hash !== $this->checksum->calculate($values, $this->getSecretKey())) {
-            throw new \Exception('Invalid hash', 1);
+            throw new Exception('Invalid hash', 1);
         }
 
         return $this;
@@ -475,7 +483,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     public function validateResponseStatusCode(int $statusCode)
     {
         if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \Exception('Invalid response code', 1);
+            throw new Exception('Invalid response code', 1);
         }
 
         return $this;
@@ -484,23 +492,13 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     /**
      * {@inheritdoc}
      */
-    public function parseBackRefRequest(string $url): Backref
+    public function parseBackRefRequest(string $url): BackRef
     {
+        // @todo Parse requests by url, headers and body.
         $values = [];
         $queryString = parse_url($url, PHP_URL_QUERY);
         parse_str($queryString, $values);
 
-        return Backref::__set_state($values);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function parseInstantPaymentNotificationRequest(string $body): InstantPaymentNotification
-    {
-        $values = [];
-        parse_str($body, $values);
-
-        return InstantPaymentNotification::__set_state($values);
+        return BackRef::__set_state($values);
     }
 }

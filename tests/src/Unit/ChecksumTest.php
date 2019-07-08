@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\Tests\Unit;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Cheppers\OtpspClient\Checksum;
 
@@ -12,11 +13,20 @@ use Cheppers\OtpspClient\Checksum;
  */
 class ChecksumTest extends TestCase
 {
-    public function casesEncodeSuccess(): array
+    /**
+     * @var string
+     */
+    protected $secretKey = 'FxDa5w314kLlNseq2sKuVwaqZshZT5d6';
+
+    public function casesCalculateSuccess(): array
     {
         return [
-            'Data empty array, return empty string' => [[], '', ''],
+            'Data empty array, return empty string' => [
+                '',
+                [],
+            ],
             'Real test with 1 product' => [
+                '51f48bfda333a8c477bbbedd18a1f787',
                 [
                     'PUBLICTESTHUF',
                     '101010514601159878253',
@@ -32,10 +42,9 @@ class ChecksumTest extends TestCase
                     '0',
                     'CCVISAMC',
                 ],
-                'FxDa5w314kLlNseq2sKuVwaqZshZT5d6',
-                '51f48bfda333a8c477bbbedd18a1f787',
             ],
             'Real test with 2 products' => [
+                '6ed529adde57070bf64ce05efa559307',
                 [
                     'PUBLICTESTHUF',
                     '101010514601278769072',
@@ -57,26 +66,29 @@ class ChecksumTest extends TestCase
                     '0',
                     'CCVISAMC',
                 ],
-                'FxDa5w314kLlNseq2sKuVwaqZshZT5d6',
-                '6ed529adde57070bf64ce05efa559307',
             ],
         ];
     }
 
     /**
-     * @dataProvider casesEncodeSuccess
+     * @dataProvider casesCalculateSuccess
      */
-    public function testEncodeSuccess(array $data, string $secretKey, string $expected): void
+    public function testCalculateSuccess(string $expected, array $data): void
     {
-        $actual = (new Checksum())->calculate($data, $secretKey);
+        $actual = (new Checksum())->calculate($data, $this->secretKey);
 
         static::assertSame($expected, $actual);
     }
 
-    public function casesEncodeFail(): array
+    public function casesCalculateFail(): array
     {
         return [
             'Multi dimension array, should return exception' => [
+                [
+                    'class' => InvalidArgumentException::class,
+                    'message' => 'Data can not be multidimensional array.',
+                    'code' => 1,
+                ],
                 [
                     'test' => [
                         'test data',
@@ -87,21 +99,27 @@ class ChecksumTest extends TestCase
                         'test data4',
                     ],
                 ],
-                '',
             ],
         ];
     }
 
     /**
-     * @dataProvider casesEncodeFail
+     * @dataProvider casesCalculateFail
      */
-    public function testEncodeFail(array $data, string $secretKey): void
+    public function testCalculateFail(array $expected, array $data): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage(
-            'Data can not be multidimensional array.'
-        );
-        $this->expectExceptionCode(1);
-        (new Checksum())->calculate($data, $secretKey);
+        if (array_key_exists('class', $expected)) {
+            $this->expectException($expected['class']);
+        }
+
+        if (array_key_exists('message', $expected)) {
+            $this->expectExceptionMessage($expected['message']);
+        }
+
+        if (array_key_exists('code', $expected)) {
+            $this->expectExceptionCode($expected['code']);
+        }
+
+        (new Checksum())->calculate($data, $this->secretKey);
     }
 }

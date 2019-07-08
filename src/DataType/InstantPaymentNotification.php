@@ -20,7 +20,7 @@ class InstantPaymentNotification extends Base
     /**
      * @var string
      */
-    public $orderStatus = '';
+    public $ipnOrderStatus = '';
 
     /**
      * @var array
