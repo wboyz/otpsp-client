@@ -16,6 +16,9 @@ class InstantDeliveryNotificationTest extends TestBase
      */
     protected $className = InstantDeliveryNotification::class;
 
+    /**
+     * {@inheritdoc}
+     */
     public function casesSetState(): array
     {
         return [
@@ -34,5 +37,12 @@ class InstantDeliveryNotificationTest extends TestBase
                 ],
             ],
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function casesExportForChecksum(): array {
+        return [];
     }
 }

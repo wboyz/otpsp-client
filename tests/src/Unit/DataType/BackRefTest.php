@@ -16,6 +16,9 @@ class BackRefTest extends TestBase
      */
     protected $className = BackRef::class;
 
+    /**
+     * {@inheritdoc}
+     */
     public function casesSetState(): array
     {
         return [
@@ -40,5 +43,12 @@ class BackRefTest extends TestBase
                 ],
             ],
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function casesExportForChecksum(): array {
+        return [];
     }
 }

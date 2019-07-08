@@ -16,6 +16,9 @@ class InstantPaymentNotificationTest extends TestBase
      */
     protected $className = InstantPaymentNotification::class;
 
+    /**
+     * {@inheritdoc}
+     */
     public function casesSetState(): array
     {
         return [
@@ -40,5 +43,12 @@ class InstantPaymentNotificationTest extends TestBase
                 ],
             ],
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function casesExportForChecksum(): array {
+        return [];
     }
 }

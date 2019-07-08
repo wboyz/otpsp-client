@@ -16,6 +16,9 @@ class InstantRefundNotificationTest extends TestBase
      */
     protected $className = InstantRefundNotification::class;
 
+    /**
+     * {@inheritdoc}
+     */
     public function casesSetState(): array
     {
         return [
@@ -34,5 +37,12 @@ class InstantRefundNotificationTest extends TestBase
                 ],
             ],
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function casesExportForChecksum(): array {
+        return [];
     }
 }

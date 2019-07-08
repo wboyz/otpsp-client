@@ -16,6 +16,9 @@ class InstantOrderStatusTest extends TestBase
      */
     protected $className = InstantOrderStatus::class;
 
+    /**
+     * {@inheritdoc}
+     */
     public function casesSetState(): array
     {
         return [
@@ -36,5 +39,12 @@ class InstantOrderStatusTest extends TestBase
                 ],
             ],
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function casesExportForChecksum(): array {
+        return [];
     }
 }

@@ -650,10 +650,10 @@ class OtpSimplePayClientTest extends TestCase
         $serializer = new Checksum();
         $logger = new NullLogger();
         $dateTime = new \DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->isInstantPaymentNotificationValid($requestBody);
+        $simplePay = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
+        $ipn = $simplePay->parseInstantPaymentNotificationRequest($requestBody);
 
-        static::assertSame($expected, $actual);
+        static::assertSame($expected, $simplePay->isValidChecksum($ipn->hash, $ipn->exportForChecksum()));
     }
 
 

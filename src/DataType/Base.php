@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
+use Cheppers\OtpspClient\Utils;
+
 class Base
 {
 
@@ -73,6 +75,6 @@ class Base
             $values[$external] = $this->{$internal};
         }
 
-        return $values;
+        return Utils::flatArray($values);
     }
 }

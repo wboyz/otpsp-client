@@ -26,4 +26,15 @@ abstract class TestBase extends TestCase
             static::assertSame($value, $data->{$key});
         }
     }
+
+    abstract public function casesExportForChecksum(): array;
+
+    /**
+     * @dataProvider casesExportForChecksum
+     */
+    public function testExportForChecksum(array $expected, array $values): void
+    {
+        $data = $this->className::__set_state($values);
+        static::assertSame($expected, $data->exportForChecksum());
+    }
 }
