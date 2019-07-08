@@ -11,7 +11,6 @@ use Cheppers\OtpspClient\DataType\InstantRefundNotification;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use Cheppers\OtpspClient\OtpSimplePayClient;
 use Cheppers\OtpspClient\Checksum;
-use Cheppers\OtpspClient\Utils;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
@@ -21,7 +20,6 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
-use SebastianBergmann\CodeCoverage\Util;
 
 /**
  * @covers \Cheppers\OtpspClient\OtpSimplePayClient
