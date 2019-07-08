@@ -42,7 +42,24 @@ class InstantRefundNotificationTest extends TestBase
     /**
      * {@inheritdoc}
      */
-    public function casesExportForChecksum(): array {
-        return [];
+    public function casesExportForChecksum(): array
+    {
+        return [
+            'valid' => [
+                [
+                    '99017212',
+                    1,
+                    'OK',
+                    '2016-04-29 12:59:57',
+                ],
+                [
+                    'ORDER_REF' => '99017212',
+                    'STATUS_CODE' => '1',
+                    'STATUS_NAME' => 'OK',
+                    'IRN_DATE' => '2016-04-29 12:59:57',
+                    'HASH' => '2c071f3bc310ba6a2df2f93095ac2c91',
+                ],
+            ],
+        ];
     }
 }

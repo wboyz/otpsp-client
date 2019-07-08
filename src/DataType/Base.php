@@ -29,7 +29,7 @@ class Base
         'date' => 'date',
         'payrefno' => 'payRefNo',
         'ctrl' => 'ctrl',
-        'ORDERSTATUS' => 'orderStatus',
+        'ORDERSTATUS' => 'ipnOrderStatus',
         'IPN_PID' => 'ipnPId',
         'IPN_PNAME' => 'ipnPName',
         'IPN_DATE' => 'ipnDate',

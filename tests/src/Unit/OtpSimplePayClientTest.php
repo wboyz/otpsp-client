@@ -11,6 +11,7 @@ use Cheppers\OtpspClient\DataType\InstantRefundNotification;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use Cheppers\OtpspClient\OtpSimplePayClient;
 use Cheppers\OtpspClient\Checksum;
+use Cheppers\OtpspClient\Utils;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
@@ -20,6 +21,7 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use SebastianBergmann\CodeCoverage\Util;
 
 /**
  * @covers \Cheppers\OtpspClient\OtpSimplePayClient
@@ -632,7 +634,9 @@ class OtpSimplePayClientTest extends TestCase
         return [
             'valid' => [
                 true,
-                'REFNOEXT=1&HASH=bef91610dda7aabfe371623edb399f3e',
+                'REFNO=1111&REFNOEXT=1234&ORDERSTATUS=COMPLETE&IPN_PID[0]=42'
+                . '&IPN_PNAME[0]=Product_1&IPN_DATE=2016040813426'
+                . '&HASH=fc52f914533ca3f243707e1e61e91086',
             ],
             'invalid' => [
                 false,

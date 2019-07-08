@@ -44,7 +44,26 @@ class InstantOrderStatusTest extends TestBase
     /**
      * {@inheritdoc}
      */
-    public function casesExportForChecksum(): array {
-        return [];
+    public function casesExportForChecksum(): array
+    {
+        return [
+            'valid' => [
+                [
+                    '2016-04-25 13:35:07',
+                    '99016764',
+                    '101010514615913074586',
+                    'COMPLETE',
+                    'Visa/MasterCard',
+                ],
+                [
+                    'ORDER_DATE' => '2016-04-25 13:35:07',
+                    'REFNO' => '99016764',
+                    'REFNOEXT' => '101010514615913074586',
+                    'ORDER_STATUS' => 'COMPLETE',
+                    'PAYMETHOD' => 'Visa/MasterCard',
+                    'HASH' => '76621655113b7fd00d605075d28023f1',
+                ],
+            ],
+        ];
     }
 }

@@ -48,7 +48,28 @@ class BackRefTest extends TestBase
     /**
      * {@inheritdoc}
      */
-    public function casesExportForChecksum(): array {
-        return [];
+    public function casesExportForChecksum(): array
+    {
+        return [
+            'valid' => [
+                [
+                    '123-456',
+                    '001',
+                    '001 | foo',
+                    'no',
+                    '2019-01-01 12:15:10',
+                    '1000',
+                ],
+                [
+                    'REFNOEXT' => '123-456',
+                    'RC' => '001',
+                    'RT' => '001 | foo',
+                    '3dsecure' => 'no',
+                    'date' => '2019-01-01 12:15:10',
+                    'payrefno' => '1000',
+                    'ctrl' => '500',
+                ],
+            ],
+        ];
     }
 }

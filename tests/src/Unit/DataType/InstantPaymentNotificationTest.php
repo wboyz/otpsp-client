@@ -26,7 +26,7 @@ class InstantPaymentNotificationTest extends TestBase
                 [
                     'refNoExt' => 'a',
                     'refNo' => 'b',
-                    'orderStatus' => 'c',
+                    'ipnOrderStatus' => 'c',
                     'ipnPId' => 'd',
                     'ipnPName' => 'e',
                     'ipnDate' => 'f',
@@ -35,7 +35,7 @@ class InstantPaymentNotificationTest extends TestBase
                 [
                     'REFNOEXT' => 'a',
                     'REFNO' => 'b',
-                    'ORDER_STATUS' => 'c',
+                    'ORDERSTATUS' => 'c',
                     'IPN_PID' => 'd',
                     'IPN_PNAME' => 'e',
                     'IPN_DATE' => 'f',
@@ -48,7 +48,32 @@ class InstantPaymentNotificationTest extends TestBase
     /**
      * {@inheritdoc}
      */
-    public function casesExportForChecksum(): array {
-        return [];
+    public function casesExportForChecksum(): array
+    {
+        return [
+           'valid' => [
+               [
+                    '1111',
+                    '1234',
+                    'COMPLETE',
+                    '42',
+                    'Product_1',
+                    '2016040813426',
+               ],
+               [
+                    'REFNO' => '1111',
+                    'REFNOEXT' => '1234',
+                    'ORDERSTATUS' => 'COMPLETE',
+                    'IPN_PID' => [
+                        '42',
+                    ],
+                    'IPN_PNAME' => [
+                        'Product_1',
+                    ],
+                    'IPN_DATE' => '2016040813426',
+                    'HASH' => '12345678',
+               ],
+           ],
+        ];
     }
 }
