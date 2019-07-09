@@ -30,7 +30,7 @@ class Redirect extends RedirectBase
         ];
         foreach ($keys as $key => $className) {
             if (array_key_exists($key, $values) && is_array($values[$key])) {
-                $values[$key] = $className::__set_state($values[$key]);
+                $instance->{$key} = $className::__set_state($values[$key]);
             }
         }
 
@@ -128,15 +128,67 @@ class Redirect extends RedirectBase
      */
     public function exportData(): array
     {
-        $data = array_merge(
-            parent::exportData(),
-            $this->order->exportData(),
-            $this->shippingAddress->exportData(),
-            $this->billingAddress->exportData()
-        );
+        /*
+         * MERCHANT,
+         * OrderREf
+         * date
+         * pname
+         * pcode
+         * pinfo
+         * price
+         * qty
+         * vat
+         * oshipping
+         * prices currency
+         * discount
+         */
+//        $data = array_merge(
+//            parent::exportData(),
+//            $this->order->exportData(),
+//            $this->shippingAddress->exportData(),
+//            $this->billingAddress->exportData()
+//        );
+
+        $data = [
+            [
+                'MERCHANT' => $this->merchantId,
+            ],
+            [
+                'ORDER_REF' => $this->order->paymentId,
+            ],
+            [
+                'ORDER_DATE' => $this->order->orderDate,
+            ],
+
+        ];
+
         foreach ($this->products as $product) {
             $data = array_merge($data, $product->exportData());
         }
+
+        $data[] = [
+            'ORDER_SHIPPING' => $this->order->shippingPrice,
+        ];
+
+        $data[] = [
+            'PRICES_CURRENCY' => $this->order->currency,
+        ];
+
+        $data[] = [
+            'TIMEOUT_URL' => $this->timeoutUrl,
+        ];
+
+        $data[] = [
+            'BACK_REF' => $this->backrefUrl,
+        ];
+
+        $data[] = [
+            'BILL_EMAIL' => $this->customerEmail,
+        ];
+
+        $data[] = [
+            'LANGUAGE' => $this->langCode,
+        ];
 
         return $data;
     }

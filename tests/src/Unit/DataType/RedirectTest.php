@@ -43,6 +43,39 @@ class RedirectTest extends RedirectBaseTestBase
                     [
                         'LANGUAGE' => 'HU',
                     ],
+                    [
+                        'ORDER_REF' => 'Foo',
+                    ],
+                    [
+                        'ORDER_DATE' => '2000-01-01 00:00:00',
+                    ],
+                    [
+                        'PRICES_CURRENCY' => 'EUR',
+                    ],
+                    [
+                        'ORDER_SHIPPING' => 9.9,
+                    ],
+                    [
+                        'DELIVERY_FNAME' => 'Foo',
+                    ],
+                    [
+                        'DELIVERY_LNAME' => 'Bar',
+                    ],
+                    [
+                        'DELIVERY_COUNTRYCODE' => 'HU',
+                    ],
+                    [
+                        'DELIVERY_CITY' => 'City',
+                    ],
+                    [
+                        'DELIVERY_ADDRESS' => 'Street 1',
+                    ],
+                    [
+                        'DELIVERY_ADDRESS2' => 'Street 2',
+                    ],
+                    [
+                        'DELIVERY_ZIPCODE' => '1234',
+                    ],
                 ],
                 [
                     'merchantId' => 'PUBLICTESTHUF',
@@ -59,7 +92,21 @@ class RedirectTest extends RedirectBaseTestBase
                     'langCode' => 'HU',
                     'backrefUrl' => 'http://backref.exmaple.com',
                     'timeoutUrl' => 'http://timeout.exmaple.com',
-                    'order' => [],
+                    'order' => [
+                        'paymentId' => 'Foo',
+                        'orderDate' => '2000-01-01 00:00:00',
+                        'currency' => 'EUR',
+                        'shippingPrice' => 9.9
+                    ],
+                    'shippingAddress' => [
+                        'firstName' => 'Foo',
+                        'lastName' => 'Bar',
+                        'countryCode' => 'HU',
+                        'city' => 'City',
+                        'addressLine' => 'Street 1',
+                        'addressLine2' => 'Street 2',
+                        'postalCode' => '1234',
+                    ],
                 ],
             ],
         ];

@@ -53,7 +53,7 @@ class Product extends RedirectBase
     /**
      * @var int
      */
-    public $vat = 0;
+    public $vat = '0';
 
     /**
      * {@inheritdoc}
@@ -62,4 +62,14 @@ class Product extends RedirectBase
     {
         return $this->sku === '';
     }
+
+    public function exportData(): array {
+        $data = parent::exportData();
+        $data[] = [
+            'ORDER_VAT[]' => '0',
+        ];
+        return $data;
+    }
+
+
 }
