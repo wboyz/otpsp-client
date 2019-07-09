@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 
+use Cheppers\OtpspClient\DataType\Order;
 use Cheppers\OtpspClient\DataType\Product;
 use Cheppers\OtpspClient\DataType\Redirect;
 
@@ -48,10 +49,17 @@ class RedirectTest extends RedirectBaseTestBase
                     'customerEmail' => 'example@example.com',
                     'products' => [
                         new Product(),
+                        'ORDER_PNAME[]' => [
+                            'foo'
+                        ],
+                        'ORDER_PCODE[]' => [
+                            '1111'
+                        ],
                     ],
                     'langCode' => 'HU',
                     'backrefUrl' => 'http://backref.exmaple.com',
                     'timeoutUrl' => 'http://timeout.exmaple.com',
+                    'order' => [],
                 ],
             ],
         ];
