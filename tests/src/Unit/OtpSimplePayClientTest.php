@@ -11,6 +11,8 @@ use Cheppers\OtpspClient\DataType\InstantRefundNotification;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use Cheppers\OtpspClient\OtpSimplePayClient;
 use Cheppers\OtpspClient\Checksum;
+use DateTime;
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
@@ -99,7 +101,7 @@ class OtpSimplePayClientTest extends TestCase
             ->willReturn('myHash');
 
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
@@ -124,7 +126,7 @@ class OtpSimplePayClientTest extends TestCase
         return [
             'hash mismatch' => [
                 [
-                    'class' => \Exception::class,
+                    'class' => Exception::class,
                     'message' => 'Invalid hash',
                     'code' => 1,
                 ],
@@ -140,7 +142,7 @@ class OtpSimplePayClientTest extends TestCase
             ],
             'unknown' => [
                 [
-                    'class' => \Exception::class,
+                    'class' => Exception::class,
                     'message' => 'myOrderStatus',
                     'code' => 42,
                 ],
@@ -192,7 +194,7 @@ class OtpSimplePayClientTest extends TestCase
         static::expectExceptionCode($expected['code']);
 
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
@@ -255,7 +257,7 @@ class OtpSimplePayClientTest extends TestCase
             ->willReturn('myHash');
 
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
@@ -285,7 +287,7 @@ class OtpSimplePayClientTest extends TestCase
         return [
             'hash mismatch' => [
                 [
-                    'class' => \Exception::class,
+                    'class' => Exception::class,
                     'message' => 'Invalid hash',
                     'code' => 1,
                 ],
@@ -297,7 +299,7 @@ class OtpSimplePayClientTest extends TestCase
             ],
             'wrong status code' => [
                 [
-                    'class' => \Exception::class,
+                    'class' => Exception::class,
                     'message' => 'myStatusName',
                     'code' => 1,
                 ],
@@ -351,7 +353,7 @@ class OtpSimplePayClientTest extends TestCase
         static::expectExceptionCode($expected['code']);
 
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
@@ -411,7 +413,7 @@ class OtpSimplePayClientTest extends TestCase
             ->method('calculate')
             ->willReturn('myHash');
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
@@ -440,7 +442,7 @@ class OtpSimplePayClientTest extends TestCase
         return [
             'hash mismatch' => [
                 [
-                    'class' => \Exception::class,
+                    'class' => Exception::class,
                     'message' => 'Invalid hash',
                     'code' => 1,
                 ],
@@ -452,7 +454,7 @@ class OtpSimplePayClientTest extends TestCase
             ],
             'wrong status code' => [
                 [
-                    'class' => \Exception::class,
+                    'class' => Exception::class,
                     'message' => 'myStatusName',
                     'code' => 1,
                 ],
@@ -505,7 +507,7 @@ class OtpSimplePayClientTest extends TestCase
         static::expectExceptionCode($expected['code']);
 
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->setSecretKey('')
             ->setMerchantId('')
@@ -530,7 +532,7 @@ class OtpSimplePayClientTest extends TestCase
         $client = new Client();
         $serializer = new Checksum();
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->validateResponseStatusCode($statusCode);
 
@@ -542,7 +544,7 @@ class OtpSimplePayClientTest extends TestCase
         return [
             '404 not found test' => [
                 [
-                    'class' => \Exception::class,
+                    'class' => Exception::class,
                     'message' => 'Invalid response code',
                     'code' => 1,
                 ],
@@ -559,7 +561,7 @@ class OtpSimplePayClientTest extends TestCase
         $client = new Client();
         $serializer = new Checksum();
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
 
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
@@ -588,7 +590,7 @@ class OtpSimplePayClientTest extends TestCase
         $client = new Client();
         $serializer = new Checksum();
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->validateStatusCode($values);
 
@@ -600,7 +602,7 @@ class OtpSimplePayClientTest extends TestCase
         return [
             'not 1, fail' => [
                 [
-                    'class' => \Exception::class,
+                    'class' => Exception::class,
                     'message' => 'MyStatusName',
                     'code' => 1,
                 ],
@@ -620,7 +622,7 @@ class OtpSimplePayClientTest extends TestCase
         $client = new Client();
         $serializer = new Checksum();
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
 
         static::expectException($expected['class']);
         static::expectExceptionMessage($expected['message']);
@@ -653,7 +655,7 @@ class OtpSimplePayClientTest extends TestCase
         $client = new Client();
         $serializer = new Checksum();
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         $simplePay = new OtpSimplePayClient($client, $serializer, $logger, $dateTime);
         $ipn = $simplePay->parseInstantPaymentNotificationRequest($requestBody);
 
@@ -689,7 +691,8 @@ class OtpSimplePayClientTest extends TestCase
         $client = new Client();
         $serializer = new Checksum();
         $logger = new NullLogger();
-        $dateTime = $this->createMock(\DateTime::class);
+        /** @var \DateTime|\PHPUnit\Framework\MockObject\MockObject $dateTime */
+        $dateTime = $this->createMock(DateTime::class);
         $dateTime
             ->method('format')
             ->willReturn('date');
@@ -722,7 +725,8 @@ class OtpSimplePayClientTest extends TestCase
         $client = new Client();
         $serializer = new Checksum();
         $logger = new NullLogger();
-        $dateTime = $this->createMock(\DateTime::class);
+        /** @var \DateTime|\PHPUnit\Framework\MockObject\MockObject $dateTime */
+        $dateTime = $this->createMock(DateTime::class);
         $dateTime
             ->method('format')
             ->willReturn('date');
@@ -758,7 +762,7 @@ class OtpSimplePayClientTest extends TestCase
         $client = new Client();
         $serializer = new Checksum();
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->isPaymentSuccess($returnCode);
 
@@ -793,7 +797,7 @@ class OtpSimplePayClientTest extends TestCase
         $client = new Client();
         $serializer = new Checksum();
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->parseBackRefRequest($url);
 
@@ -835,7 +839,7 @@ class OtpSimplePayClientTest extends TestCase
         $client = new Client();
         $serializer = new Checksum();
         $logger = new NullLogger();
-        $dateTime = new \DateTime();
+        $dateTime = new DateTime();
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->parseInstantPaymentNotificationRequest($body);
 

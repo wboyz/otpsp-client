@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient;
 
+use InvalidArgumentException;
+
 class Checksum
 {
 
@@ -22,7 +24,7 @@ class Checksum
 
         foreach ($data as $field) {
             if (is_array($field)) {
-                throw new \InvalidArgumentException('Data can not be multidimensional array.', 1);
+                throw new InvalidArgumentException('Data can not be multidimensional array.', 1);
             }
 
             $hashString .= strlen(stripslashes($field)) . $field;

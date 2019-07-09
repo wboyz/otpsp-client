@@ -10,6 +10,8 @@ use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use DateTimeInterface;
+use DOMDocument;
+use DOMXPath;
 use Exception;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
@@ -316,12 +318,12 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     public function parseResponseXml(string $xml): array
     {
         // @todo Validate with *.xsd.
-        $doc = new \DOMDocument();
+        $doc = new DOMDocument();
         $doc->loadXML($xml);
         $rootNode = $doc->childNodes->item(0);
 
         $values = [];
-        $xpath = new \DOMXPath($doc);
+        $xpath = new DOMXPath($doc);
         /** @var \DOMNode $node */
         foreach ($xpath->query('./*', $rootNode) as $node) {
             $values[$node->nodeName] = $node->textContent;
@@ -348,7 +350,7 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         ];
 
         // @todo Validate with *.xsd.
-        $doc = new \DOMDocument();
+        $doc = new DOMDocument();
         $doc->loadXML($xml);
         $rootNode = $doc->childNodes->item(0);
         $values = explode('|', $rootNode->nodeValue);

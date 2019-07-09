@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Cheppers\OtpspClient;
 
 use Cheppers\OtpspClient\DataType\BackRef;
-use Cheppers\OtpspClient\DataType\ResponseBase;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;

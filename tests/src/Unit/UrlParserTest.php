@@ -99,8 +99,6 @@ class UrlParserTest extends TestCase
      */
     public function testBuildUrl(string $expected, array $parts)
     {
-        $actual = (new UrlParser())->buildUrl($parts);
-
         static::assertSame($expected, (new UrlParser())->buildUrl($parts));
     }
 }

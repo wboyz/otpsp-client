@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Cheppers\OtpspClient\DataType;
 
 class Order extends RedirectBase
