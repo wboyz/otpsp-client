@@ -36,14 +36,14 @@ class OrderTest extends RedirectBaseTestBase
                         'PRICES_CURRENCY' => 'EUR',
                     ],
                     [
-                        'ORDER_SHIPPING' => 999.9,
+                        'ORDER_SHIPPING' => 9.9,
                     ],
                 ],
                 [
                     'paymentId' => 'Foo',
                     'currency' => 'EUR',
                     'orderDate' => '2000-01-01 00:00:00',
-                    'shippingPrice' => 999.9,
+                    'shippingPrice' => 9.9
                 ],
             ]
         ];

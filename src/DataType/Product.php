@@ -21,6 +21,17 @@ class Product extends RedirectBase
     ];
 
     /**
+     * {@inheritdoc}
+     */
+    protected $requiredFields = [
+        'productName',
+        'sku',
+        'price',
+        'quantity',
+        'vat',
+    ];
+
+    /**
      * @var string
      */
     public $productName = '';
@@ -53,12 +64,12 @@ class Product extends RedirectBase
     /**
      * @var int
      */
-    public $vat = 0;
+    public $vat = '0';
 
     /**
      * {@inheritdoc}
      */
-    protected function isEmpty(): bool
+    public function isEmpty(): bool
     {
         return $this->sku === '';
     }

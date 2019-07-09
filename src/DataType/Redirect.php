@@ -18,6 +18,15 @@ class Redirect extends RedirectBase
         'langCode' => 'LANGUAGE',
     ];
 
+    /**
+     * {@inheritdoc}
+     */
+    protected $requiredFields = [
+        'merchantId',
+        'timeoutUrl',
+        'backrefUrl',
+    ];
+
     public static function __set_state($values)
     {
         /** @var static $instance */
@@ -30,7 +39,7 @@ class Redirect extends RedirectBase
         ];
         foreach ($keys as $key => $className) {
             if (array_key_exists($key, $values) && is_array($values[$key])) {
-                $values[$key] = $className::__set_state($values[$key]);
+                $instance->{$key} = $className::__set_state($values[$key]);
             }
         }
 
@@ -105,7 +114,7 @@ class Redirect extends RedirectBase
         'ORDER_VAT[]',
         'ORDER_SHIPPING',
         'PRICES_CURRENCY',
-        'DISCOUNT',
+        'DISCOUNT[]',
     ];
 
     public function __construct()
@@ -118,9 +127,9 @@ class Redirect extends RedirectBase
     /**
      * {@inheritdoc}
      */
-    protected function isEmpty(): bool
+    public function isEmpty(): bool
     {
-        return $this->merchantId === '';
+        return !$this->products || $this->order->isEmpty();
     }
 
     /**
@@ -128,21 +137,65 @@ class Redirect extends RedirectBase
      */
     public function exportData(): array
     {
-        $data = parent::exportData();
-        $data = array_merge($data, $this->order->exportData());
-        $data = array_merge($data, $this->shippingAddress->exportData());
-        $data = array_merge($data, $this->billingAddress->exportData());
+        if ($this->isEmpty()) {
+            return [];
+        }
+
+        $data = [
+            [
+                'MERCHANT' => $this->merchantId,
+            ],
+            [
+                'ORDER_REF' => $this->order->paymentId,
+            ],
+            [
+                'ORDER_DATE' => $this->order->orderDate,
+            ],
+        ];
+
         foreach ($this->products as $product) {
             $data = array_merge($data, $product->exportData());
+        }
+
+        $data[] = [
+            'ORDER_SHIPPING' => $this->order->shippingPrice,
+        ];
+
+        $data[] = [
+            'PRICES_CURRENCY' => $this->order->currency,
+        ];
+
+        $data[] = [
+            'TIMEOUT_URL' => $this->timeoutUrl,
+        ];
+
+        $data[] = [
+            'BACK_REF' => $this->backrefUrl,
+        ];
+
+        $data[] = [
+            'BILL_EMAIL' => $this->customerEmail,
+        ];
+
+        $data = array_merge(
+            $data,
+            $this->billingAddress->exportData(),
+            $this->shippingAddress->exportData()
+        );
+
+        if ($this->langCode) {
+            $data[] = [
+                'LANGUAGE' => $this->langCode,
+            ];
         }
 
         return $data;
     }
 
-    protected function getHashValues(): array
+    public function getHashValues(array $data): array
     {
         $values = [];
-        foreach ($this->exportData() as $items) {
+        foreach ($data as $items) {
             foreach ($items as $key => $value) {
                 if (!in_array($key, $this->hashFields)) {
                     continue;
