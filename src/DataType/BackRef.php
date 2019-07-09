@@ -6,7 +6,7 @@ namespace Cheppers\OtpspClient\DataType;
 
 use Cheppers\OtpspClient\OtpSimplePayClientInterface;
 
-class BackRef extends Base
+class BackRef extends ResponseBase
 {
 
     /**

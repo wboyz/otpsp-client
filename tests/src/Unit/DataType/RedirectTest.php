@@ -4,22 +4,25 @@ namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 
 use Cheppers\OtpspClient\DataType\Product;
 use Cheppers\OtpspClient\DataType\Redirect;
-use PHPUnit\Framework\TestCase;
 
-class RedirectTest extends TestCase
+/**
+ * @covers \Cheppers\OtpspClient\DataType\Redirect<extended>
+ */
+class RedirectTest extends RedirectBaseTestBase
 {
+
+    /**
+     * {@inheritdoc}
+     */
+    protected $className = Redirect::class;
+
+    /**
+     * {@inheritdoc}
+     */
     public function casesExportData()
     {
-        $redirect = new Redirect();
-        $redirect->merchantId = 'PUBLICTESTHUF';
-        $redirect->customerEmail = 'example@example.com';
-        $redirect->products[] = new Product();
-        $redirect->langCode = 'HU';
-        $redirect->backrefUrl = 'http://backref.exmaple.com';
-        $redirect->timeoutUrl = 'http://timeout.exmaple.com';
-
         return [
-            'empty' => [[], new Redirect()],
+            'empty' => [[], []],
             'basic' => [
                 [
                     [
@@ -38,16 +41,17 @@ class RedirectTest extends TestCase
                         'LANGUAGE' => 'HU',
                     ],
                 ],
-                $redirect,
+                [
+                    'merchantId' => 'PUBLICTESTHUF',
+                    'customerEmail' => 'example@example.com',
+                    'products' => [
+                        new Product(),
+                    ],
+                    'langCode' => 'HU',
+                    'backrefUrl' => 'http://backref.exmaple.com',
+                    'timeoutUrl' => 'http://timeout.exmaple.com',
+                ],
             ],
         ];
-    }
-
-    /**
-     * @dataProvider casesExportData
-     */
-    public function testExportData($expected, Redirect $redirect)
-    {
-        static::assertSame($expected, $redirect->exportData());
     }
 }

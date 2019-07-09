@@ -5,11 +5,10 @@ namespace Cheppers\OtpspClient\DataType;
 
 class BillingAddress extends ShippingAddress
 {
-    /**
-     * @var string
-     */
-    public $organization = '';
 
+    /**
+     * {@inheritdoc}
+     */
     protected static $propertyMapping = [
         'firstName' => 'BILL_FNAME',
         'lastName' => 'BILL_LNAME',
@@ -20,4 +19,9 @@ class BillingAddress extends ShippingAddress
         'addressLine2' => 'BILL_ADDRESS2',
         'postalCode' => 'BILL_ZIPCODE',
     ];
+
+    /**
+     * @var string
+     */
+    public $organization = '';
 }

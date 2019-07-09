@@ -9,7 +9,7 @@ use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 /**
  * @covers \Cheppers\OtpspClient\DataType\InstantPaymentNotification<extended>
  */
-class InstantPaymentNotificationTest extends TestBase
+class InstantPaymentNotificationResponseBaseTest extends ResponseBaseTestBase
 {
     /**
      * {@inheritdoc}

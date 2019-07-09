@@ -6,6 +6,20 @@ namespace Cheppers\OtpspClient\DataType;
 
 class ShippingAddress extends RedirectBase
 {
+
+    /**
+     * {@inheritdoc}
+     */
+    protected static $propertyMapping = [
+        'firstName' => 'DELIVERY_FNAME',
+        'lastName' => 'DELIVERY_LNAME',
+        'countryCode' => 'DELIVERY_COUNTRYCODE',
+        'city' => 'DELIVERY_CITY',
+        'addressLine' => 'DELIVERY_ADDRESS',
+        'addressLine2' => 'DELIVERY_ADDRESS2',
+        'postalCode' => 'DELIVERY_ZIPCODE',
+    ];
+
     /**
      * @var string
      */
@@ -41,30 +55,9 @@ class ShippingAddress extends RedirectBase
      */
     public $postalCode = '';
 
-    protected static $propertyMapping = [
-        'firstName' => 'DELIVERY_FNAME',
-        'lastName' => 'DELIVERY_LNAME',
-        'countryCode' => 'DELIVERY_COUNTRYCODE',
-        'city' => 'DELIVERY_CITY',
-        'addressLine' => 'DELIVERY_ADDRESS',
-        'addressLine2' => 'DELIVERY_ADDRESS2',
-        'postalCode' => 'DELIVERY_ZIPCODE',
-    ];
-
-    public static function __set_state($values)
-    {
-        $instance = new static();
-        foreach (static::$propertyMapping as $internal => $external) {
-            if (!array_key_exists($internal, $values) || !property_exists($instance, $external)) {
-                continue;
-            }
-
-            $instance->{$external} = $values[$internal];
-        }
-
-        return $instance;
-    }
-
+    /**
+     * {@inheritdoc}
+     */
     protected function isEmpty(): bool
     {
         return $this->postalCode === '';

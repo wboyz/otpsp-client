@@ -3,7 +3,7 @@
 namespace Cheppers\OtpspClient;
 
 use Cheppers\OtpspClient\DataType\BackRef;
-use Cheppers\OtpspClient\DataType\Base;
+use Cheppers\OtpspClient\DataType\ResponseBase;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
@@ -63,14 +63,6 @@ interface OtpSimplePayClientInterface
      */
     public function getSupportedLanguages(): array;
 
-    /**
-     * @param string[] $supportedLanguages
-     *   Two letter lower-case language codes.
-     *
-     * @return $this
-     */
-    public function setSupportedLanguages(array $supportedLanguages);
-
     public function instantDeliveryNotificationPost(
         string $orderRef,
         string $orderAmount,
@@ -92,6 +84,8 @@ interface OtpSimplePayClientInterface
      * @return string[]
      */
     public function parseResponseString(string $xml, string $dateKey): array;
+
+    public function getLiveUpdateUrl(): string;
 
     public function isValidChecksum(string $expectedHash, array $values): bool;
 

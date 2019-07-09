@@ -4,9 +4,27 @@ namespace Cheppers\OtpspClient\DataType;
 
 abstract class RedirectBase
 {
+
+    /**
+     * @var string[]
+     */
     protected static $propertyMapping = [];
 
-    abstract protected function isEmpty():bool;
+    public static function __set_state($values)
+    {
+        $instance = new static();
+        foreach (array_keys(static::$propertyMapping) as $internal) {
+            if (!array_key_exists($internal, $values) || !property_exists($instance, $internal)) {
+                continue;
+            }
+
+            $instance->{$internal} = $values[$internal];
+        }
+
+        return $instance;
+    }
+
+    abstract protected function isEmpty(): bool;
 
     public function exportData(): array
     {

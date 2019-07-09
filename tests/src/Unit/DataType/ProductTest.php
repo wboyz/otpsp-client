@@ -4,21 +4,25 @@ namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 
 use Cheppers\OtpspClient\DataType\Product;
 
-class ProductTest extends \PHPUnit\Framework\TestCase
+/**
+ * @covers \Cheppers\OtpspClient\DataType\Product<extended>
+ */
+class ProductTest extends RedirectBaseTestBase
 {
+
+    /**
+     * @var string
+     */
+    protected $className = Product::class;
+
+    /**
+     * {@inheritdoc}
+     */
     public function casesExportData()
     {
-        $p1 = new Product();
-        $p1->sku = 'mzCode';
-        $p1->productName = 'Foo';
-        $p1->quantity = 1;
-        $p1->price = 99.9;
-        $p1->description = 'Bar';
-        $p1->discount = 5;
-        $p1->vat = 27;
 
         return [
-            'empty' => [[], new Product()],
+            'empty' => [[], []],
             'basic' => [
                 [
                     [
@@ -43,16 +47,16 @@ class ProductTest extends \PHPUnit\Framework\TestCase
                         'ORDER_VAT[]' => 27,
                     ],
                 ],
-                $p1,
+                [
+                    'sku' => 'mzCode',
+                    'productName' => 'Foo',
+                    'quantity' => 1,
+                    'price' => 99.9,
+                    'description' => 'Bar',
+                    'discount' => 5,
+                    'vat' => 27,
+                ],
             ],
         ];
-    }
-
-    /**
-     * @dataProvider casesExportData
-     */
-    public function testExportData(array $expected, Product $product)
-    {
-        static::assertSame($expected, $product->exportData());
     }
 }

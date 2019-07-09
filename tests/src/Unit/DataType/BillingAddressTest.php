@@ -2,17 +2,17 @@
 
 namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 
-use Cheppers\OtpspClient\DataType\ShippingAddress;
+use Cheppers\OtpspClient\DataType\BillingAddress;
 
 /**
- * @covers \Cheppers\OtpspClient\DataType\ShippingAddress<extended>
+ * @covers \Cheppers\OtpspClient\DataType\BillingAddress<extended>
  */
-class ShippingAddressTest extends RedirectBaseTestBase
+class BillingAddressTest extends RedirectBaseTestBase
 {
     /**
      * {@inheritdoc}
      */
-    protected $className = ShippingAddress::class;
+    protected $className = BillingAddress::class;
 
     /**
      * {@inheritdoc}
@@ -24,25 +24,28 @@ class ShippingAddressTest extends RedirectBaseTestBase
             'basic' => [
                 [
                     [
-                        'DELIVERY_FNAME' => 'Foo',
+                        'BILL_FNAME' => 'Foo',
                     ],
                     [
-                        'DELIVERY_LNAME' => 'Bar',
+                        'BILL_LNAME' => 'Bar',
                     ],
                     [
-                        'DELIVERY_COUNTRYCODE' => 'HU',
+                        'BILL_COMPANY' => 'My Org 01',
                     ],
                     [
-                        'DELIVERY_CITY' => 'City',
+                        'BILL_COUNTRYCODE' => 'HU',
                     ],
                     [
-                        'DELIVERY_ADDRESS' => 'Street 1',
+                        'BILL_CITY' => 'City',
                     ],
                     [
-                        'DELIVERY_ADDRESS2' => 'Street 2',
+                        'BILL_ADDRESS' => 'Street 1',
                     ],
                     [
-                        'DELIVERY_ZIPCODE' => '1234',
+                        'BILL_ADDRESS2' => 'Street 2',
+                    ],
+                    [
+                        'BILL_ZIPCODE' => '1234',
                     ],
                 ],
                 [
@@ -53,6 +56,7 @@ class ShippingAddressTest extends RedirectBaseTestBase
                     'addressLine' => 'Street 1',
                     'addressLine2' => 'Street 2',
                     'postalCode' => '1234',
+                    'organization' => 'My Org 01',
                 ],
             ]
         ];
