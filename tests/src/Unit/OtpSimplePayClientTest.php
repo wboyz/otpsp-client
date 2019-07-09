@@ -37,6 +37,7 @@ class OtpSimplePayClientTest extends TestCase
                     'REFNOEXT' => 'myRefNoExt',
                     'ORDER_STATUS' => 'MyOrderStatus',
                     'PAYMETHOD' => 'myPayMethod',
+                    'STATUS_CODE' => 42,
                 ]),
                 implode(PHP_EOL, [
                     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -46,6 +47,7 @@ class OtpSimplePayClientTest extends TestCase
                     '<REFNOEXT>myRefNoExt</REFNOEXT>',
                     '<ORDER_STATUS>MyOrderStatus</ORDER_STATUS>',
                     '<PAYMETHOD>myPayMethod</PAYMETHOD>',
+                    '<STATUS_CODE>42</STATUS_CODE>',
                     '<HASH>myHash</HASH>',
                     '</Order>'
                 ]),

@@ -9,7 +9,7 @@ use Cheppers\OtpspClient\DataType\InstantRefundNotification;
 /**
  * @covers \Cheppers\OtpspClient\DataType\InstantRefundNotification<extended>
  */
-class InstantRefundNotificationTest extends TestBase
+class InstantRefundNotificationResponseBaseTest extends ResponseBaseTestBase
 {
     /**
      * {@inheritdoc}
@@ -44,6 +44,7 @@ class InstantRefundNotificationTest extends TestBase
      */
     public function casesExportForChecksum(): array
     {
+
         return [
             'valid' => [
                 [

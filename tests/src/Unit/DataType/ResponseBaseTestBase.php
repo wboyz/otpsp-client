@@ -6,11 +6,11 @@ namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 
 use PHPUnit\Framework\TestCase;
 
-abstract class TestBase extends TestCase
+abstract class ResponseBaseTestBase extends TestCase
 {
 
     /**
-     * @var string|\Cheppers\OtpspClient\DataType\Base
+     * @var string|\Cheppers\OtpspClient\DataType\ResponseBase
      */
     protected $className = '';
 

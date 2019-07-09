@@ -9,7 +9,7 @@ use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 /**
  * @covers \Cheppers\OtpspClient\DataType\InstantDeliveryNotification<extended>
  */
-class InstantDeliveryNotificationTest extends TestBase
+class InstantDeliveryNotificationResponseBaseTest extends ResponseBaseTestBase
 {
     /**
      * {@inheritdoc}
@@ -44,6 +44,7 @@ class InstantDeliveryNotificationTest extends TestBase
      */
     public function casesExportForChecksum(): array
     {
+
         return [
             'valid' => [
                 [

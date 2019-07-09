@@ -6,7 +6,7 @@ namespace Cheppers\OtpspClient\DataType;
 
 use Cheppers\OtpspClient\Utils;
 
-class Base
+class ResponseBase
 {
 
     /**

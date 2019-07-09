@@ -9,7 +9,7 @@ use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 /**
  * @covers \Cheppers\OtpspClient\DataType\InstantOrderStatus<extended>
  */
-class InstantOrderStatusTest extends TestBase
+class InstantOrderStatusResponseBaseTest extends ResponseBaseTestBase
 {
     /**
      * {@inheritdoc}
@@ -46,6 +46,7 @@ class InstantOrderStatusTest extends TestBase
      */
     public function casesExportForChecksum(): array
     {
+
         return [
             'valid' => [
                 [

@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
-class InstantRefundNotification extends Base
+class InstantRefundNotification extends ResponseBase
 {
 
     /**

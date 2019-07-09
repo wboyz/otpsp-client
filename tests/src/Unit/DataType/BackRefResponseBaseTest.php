@@ -9,7 +9,7 @@ use Cheppers\OtpspClient\DataType\BackRef;
 /**
  * @covers \Cheppers\OtpspClient\DataType\BackRef<extended>
  */
-class BackRefTest extends TestBase
+class BackRefResponseBaseTest extends ResponseBaseTestBase
 {
     /**
      * {@inheritdoc}
@@ -50,6 +50,7 @@ class BackRefTest extends TestBase
      */
     public function casesExportForChecksum(): array
     {
+
         return [
             'valid' => [
                 [

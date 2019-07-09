@@ -153,16 +153,6 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
         return $this->supportedLanguages;
     }
 
-    /**
-     * @return $this
-     */
-    public function setSupportedLanguages(array $supportedLanguages)
-    {
-        $this->supportedLanguages = $supportedLanguages;
-
-        return $this;
-    }
-
     public function __construct(
         ClientInterface $client,
         Checksum $serializer,
@@ -369,6 +359,11 @@ class OtpSimplePayClient implements LoggerAwareInterface, OtpSimplePayClientInte
     protected function getUri(string $path): string
     {
         return $this->getBaseUri() . "/$path";
+    }
+
+    public function getLiveUpdateUrl(): string
+    {
+        return $this->getUri('order/lu.php');
     }
 
     /**
