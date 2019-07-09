@@ -18,6 +18,15 @@ class Redirect extends RedirectBase
         'langCode' => 'LANGUAGE',
     ];
 
+    /**
+     * {@inheritdoc}
+     */
+    protected $requiredFields = [
+        'merchantId',
+        'timeoutUrl',
+        'backrefUrl',
+    ];
+
     public static function __set_state($values)
     {
         /** @var static $instance */
@@ -118,9 +127,9 @@ class Redirect extends RedirectBase
     /**
      * {@inheritdoc}
      */
-    protected function isEmpty(): bool
+    public function isEmpty(): bool
     {
-        return $this->merchantId === '';
+        return !$this->products || $this->order->isEmpty();
     }
 
     /**
@@ -128,26 +137,9 @@ class Redirect extends RedirectBase
      */
     public function exportData(): array
     {
-        /*
-         * MERCHANT,
-         * OrderREf
-         * date
-         * pname
-         * pcode
-         * pinfo
-         * price
-         * qty
-         * vat
-         * oshipping
-         * prices currency
-         * discount
-         */
-//        $data = array_merge(
-//            parent::exportData(),
-//            $this->order->exportData(),
-//            $this->shippingAddress->exportData(),
-//            $this->billingAddress->exportData()
-//        );
+        if ($this->isEmpty()) {
+            return [];
+        }
 
         $data = [
             [
@@ -159,7 +151,6 @@ class Redirect extends RedirectBase
             [
                 'ORDER_DATE' => $this->order->orderDate,
             ],
-
         ];
 
         foreach ($this->products as $product) {
@@ -186,9 +177,17 @@ class Redirect extends RedirectBase
             'BILL_EMAIL' => $this->customerEmail,
         ];
 
-        $data[] = [
-            'LANGUAGE' => $this->langCode,
-        ];
+        $data = array_merge(
+            $data,
+            $this->billingAddress->exportData(),
+            $this->shippingAddress->exportData()
+        );
+
+        if ($this->langCode) {
+            $data[] = [
+                'LANGUAGE' => $this->langCode,
+            ];
+        }
 
         return $data;
     }

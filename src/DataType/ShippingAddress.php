@@ -58,7 +58,7 @@ class ShippingAddress extends RedirectBase
     /**
      * {@inheritdoc}
      */
-    protected function isEmpty(): bool
+    public function isEmpty(): bool
     {
         return $this->postalCode === '';
     }

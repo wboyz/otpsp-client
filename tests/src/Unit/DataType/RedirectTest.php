@@ -32,7 +32,55 @@ class RedirectTest extends RedirectBaseTestBase
                         'MERCHANT' => 'PUBLICTESTHUF',
                     ],
                     [
-                        'BILL_EMAIL' => 'example@example.com',
+                        'ORDER_REF' => 'Foo',
+                    ],
+                    [
+                        'ORDER_DATE' => '2000-01-01 00:00:00',
+                    ],
+                    [
+                        'ORDER_PNAME[]' => 'p1-name',
+                    ],
+                    [
+                        'ORDER_PCODE[]' => 'p1-sku',
+                    ],
+                    [
+                        'ORDER_PINFO[]' => 'p1-desc',
+                    ],
+                    [
+                        'ORDER_PRICE[]' => '42',
+                    ],
+                    [
+                        'ORDER_QTY[]' => '1',
+                    ],
+                    [
+                        'ORDER_VAT[]' => '2',
+                    ],
+                    [
+                        'ORDER_PNAME[]' => 'p2-name',
+                    ],
+                    [
+                        'ORDER_PCODE[]' => 'p2-sku',
+                    ],
+                    [
+                        'ORDER_PINFO[]' => 'p2-desc',
+                    ],
+                    [
+                        'ORDER_PRICE[]' => '43',
+                    ],
+                    [
+                        'ORDER_QTY[]' => '3',
+                    ],
+                    [
+                        'DISCOUNT[]' => '4',
+                    ],
+                    [
+                        'ORDER_VAT[]' => '5',
+                    ],
+                    [
+                        'ORDER_SHIPPING' => 9.9,
+                    ],
+                    [
+                        'PRICES_CURRENCY' => 'EUR',
                     ],
                     [
                         'TIMEOUT_URL' => 'http://timeout.exmaple.com',
@@ -41,19 +89,7 @@ class RedirectTest extends RedirectBaseTestBase
                         'BACK_REF' => 'http://backref.exmaple.com',
                     ],
                     [
-                        'LANGUAGE' => 'HU',
-                    ],
-                    [
-                        'ORDER_REF' => 'Foo',
-                    ],
-                    [
-                        'ORDER_DATE' => '2000-01-01 00:00:00',
-                    ],
-                    [
-                        'PRICES_CURRENCY' => 'EUR',
-                    ],
-                    [
-                        'ORDER_SHIPPING' => 9.9,
+                        'BILL_EMAIL' => 'example@example.com',
                     ],
                     [
                         'DELIVERY_FNAME' => 'Foo',
@@ -76,17 +112,31 @@ class RedirectTest extends RedirectBaseTestBase
                     [
                         'DELIVERY_ZIPCODE' => '1234',
                     ],
+                    [
+                        'LANGUAGE' => 'HU',
+                    ],
                 ],
                 [
                     'merchantId' => 'PUBLICTESTHUF',
                     'customerEmail' => 'example@example.com',
                     'products' => [
-                        new Product(),
-                        'ORDER_PNAME[]' => [
-                            'foo'
-                        ],
-                        'ORDER_PCODE[]' => [
-                            '1111'
+                        Product::__set_state([
+                            'productName' => 'p1-name',
+                            'sku' => 'p1-sku',
+                            'description' => 'p1-desc',
+                            'price' => '42',
+                            'quantity' => '1',
+                            'discount' => '0',
+                            'vat' => '2',
+                        ]),
+                        [
+                            'productName' => 'p2-name',
+                            'sku' => 'p2-sku',
+                            'description' => 'p2-desc',
+                            'price' => '43',
+                            'quantity' => '3',
+                            'discount' => '4',
+                            'vat' => '5',
                         ],
                     ],
                     'langCode' => 'HU',

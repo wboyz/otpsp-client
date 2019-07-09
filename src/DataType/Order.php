@@ -18,6 +18,15 @@ class Order extends RedirectBase
     ];
 
     /**
+     * {@inheritdoc}
+     */
+    protected $requiredFields = [
+        'paymentId',
+        'orderDate',
+        'currency',
+    ];
+
+    /**
      * @var string
      */
     public $paymentId = '';
@@ -40,7 +49,7 @@ class Order extends RedirectBase
     /**
      * {@inheritdoc}
      */
-    protected function isEmpty(): bool
+    public function isEmpty(): bool
     {
         return $this->paymentId === '';
     }

@@ -26,7 +26,14 @@ abstract class RedirectBase
         return $instance;
     }
 
-    abstract protected function isEmpty(): bool;
+    abstract public function isEmpty(): bool;
+
+    /**
+     * Internal name of the required fields.
+     *
+     * @var string[]
+     */
+    protected $requiredFields = [];
 
     public function exportData(): array
     {
@@ -37,7 +44,7 @@ abstract class RedirectBase
         $data = [];
         foreach (static::$propertyMapping as $internal => $external) {
             $value =  $this->{$internal};
-            if (!$value) {
+            if (!in_array($internal, $this->requiredFields) && !$value) {
                 continue;
             }
 
