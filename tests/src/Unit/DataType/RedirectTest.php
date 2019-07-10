@@ -252,6 +252,51 @@ class RedirectTest extends RedirectBaseTestBase
                     [
                         'BILL_EMAIL' => 'example@example.com',
                     ],
+                    [
+                        'DELIVERY_FNAME' => 'Shipping Fname',
+                    ],
+                    [
+                        'DELIVERY_LNAME' => 'Shipping Lname',
+                    ],
+                    [
+                        'DELIVERY_COUNTRYCODE' => 'Shipping HU',
+                    ],
+                    [
+                        'DELIVERY_CITY' => 'Shipping City',
+                    ],
+                    [
+                        'DELIVERY_ADDRESS' => 'Shipping Street 1',
+                    ],
+                    [
+                        'DELIVERY_ADDRESS2' => 'Shipping Street 2',
+                    ],
+                    [
+                        'DELIVERY_ZIPCODE' => '1234',
+                    ],
+                    [
+                        'BILL_FNAME' => 'Billing Fname',
+                    ],
+                    [
+                        'BILL_LNAME' => 'Billing Lname',
+                    ],
+                    [
+                        'BILL_COMPANY' => 'Billing Company',
+                    ],
+                    [
+                        'BILL_COUNTRYCODE' => 'Billing GB',
+                    ],
+                    [
+                        'BILL_CITY' => 'Billing City',
+                    ],
+                    [
+                        'BILL_ADDRESS' => 'Billing Street 1',
+                    ],
+                    [
+                        'BILL_ADDRESS2' => 'Billing Street 2',
+                    ],
+                    [
+                        'BILL_ZIPCODE' => '4567',
+                    ],
                 ],
             ]
         ];
