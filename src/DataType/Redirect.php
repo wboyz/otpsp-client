@@ -194,14 +194,52 @@ class Redirect extends RedirectBase
 
     public function getHashValues(array $data): array
     {
-        $values = [];
+        $groups = [
+            'pre' => [],
+            'ORDER_PNAME[]' => [],
+            'ORDER_PCODE[]' => [],
+            'ORDER_PINFO[]' => [],
+            'ORDER_PRICE[]' => [],
+            'ORDER_QTY[]' => [],
+            'DISCOUNT[]' => [],
+            'ORDER_VAT[]' => [],
+            'post' => [],
+        ];
         foreach ($data as $items) {
             foreach ($items as $key => $value) {
                 if (!in_array($key, $this->hashFields)) {
                     continue;
                 }
 
-                $values[] = $value;
+                switch ($key) {
+                    case 'MERCHANT':
+                    case 'ORDER_REF':
+                    case 'ORDER_DATE':
+                        $group = 'pre';
+                        break;
+
+                    case 'ORDER_PNAME[]':
+                    case 'ORDER_PCODE[]':
+                    case 'ORDER_PINFO[]':
+                    case 'ORDER_PRICE[]':
+                    case 'ORDER_QTY[]':
+                    case 'DISCOUNT[]':
+                    case 'ORDER_VAT[]':
+                        $group = $key;
+                        break;
+
+                    default:
+                        $group = 'post';
+                }
+
+                $groups[$group][] = $value;
+            }
+        }
+
+        $values = [];
+        foreach ($groups as $group => $items) {
+            foreach ($items as $item) {
+                $values[] = $item;
             }
         }
 

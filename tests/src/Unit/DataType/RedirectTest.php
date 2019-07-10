@@ -168,28 +168,35 @@ class RedirectTest extends RedirectBaseTestBase
     public function casesGetHashValues()
     {
         return [
-            'empty' => [[], [], new Redirect()],
+            'empty' => [[], []],
             'basic' => [
                 [
-                    'PUBLICTESTHUF',
-                    'Foo',
+                    'my merchant ID',
+                    'my order ref',
                     '2000-01-01 00:00:00',
-                    'EUR',
-                    999.9,
-                    'Product 01',
-                    'mzCode',
-                    'Bar',
-                    99.9,
+                    'p1 name',
+                    'p2 name',
+                    'p1 code',
+                    'p2 code',
+                    'p1 info',
+                    'p2 info',
                     1,
                     5,
-                    27,
+                    2,
+                    6,
+                    3,
+                    7,
+                    4,
+                    8,
+                    'EUR',
+                    4.2,
                 ],
                 [
                     [
-                        'MERCHANT' => 'PUBLICTESTHUF',
+                        'MERCHANT' => 'my merchant ID',
                     ],
                     [
-                        'ORDER_REF' => 'Foo',
+                        'ORDER_REF' => 'my order ref',
                     ],
                     [
                         'ORDER_DATE' => '2000-01-01 00:00:00',
@@ -198,34 +205,54 @@ class RedirectTest extends RedirectBaseTestBase
                         'PRICES_CURRENCY' => 'EUR',
                     ],
                     [
-                        'ORDER_SHIPPING' => 999.9,
+                        'ORDER_SHIPPING' => 4.2,
                     ],
                     [
-                        'ORDER_PNAME[]' => 'Product 01',
+                        'ORDER_PNAME[]' => 'p1 name',
                     ],
                     [
-                        'ORDER_PCODE[]' => 'mzCode',
+                        'ORDER_PCODE[]' => 'p1 code',
                     ],
                     [
-                        'ORDER_PINFO[]' => 'Bar',
+                        'ORDER_PINFO[]' => 'p1 info',
                     ],
                     [
-                        'ORDER_PRICE[]' => 99.9,
+                        'ORDER_PRICE[]' => 1,
                     ],
                     [
-                        'ORDER_QTY[]' => 1,
+                        'ORDER_QTY[]' => 2,
                     ],
                     [
-                        'DISCOUNT[]' => 5,
+                        'DISCOUNT[]' => 3,
                     ],
                     [
-                        'ORDER_VAT[]' => 27,
+                        'ORDER_VAT[]' => 4,
+                    ],
+                    [
+                        'ORDER_PNAME[]' => 'p2 name',
+                    ],
+                    [
+                        'ORDER_PCODE[]' => 'p2 code',
+                    ],
+                    [
+                        'ORDER_PINFO[]' => 'p2 info',
+                    ],
+                    [
+                        'ORDER_PRICE[]' => 5,
+                    ],
+                    [
+                        'ORDER_QTY[]' => 6,
+                    ],
+                    [
+                        'DISCOUNT[]' => 7,
+                    ],
+                    [
+                        'ORDER_VAT[]' => 8,
                     ],
                     [
                         'BILL_EMAIL' => 'example@example.com',
                     ],
                 ],
-                new Redirect(),
             ]
         ];
     }
@@ -233,8 +260,10 @@ class RedirectTest extends RedirectBaseTestBase
     /**
      * @dataProvider casesGetHashValues
      */
-    public function testGetHashValues($expected, array $data, Redirect $redirect)
+    public function testGetHashValues($expected, array $data)
     {
-        self::assertSame($expected, $redirect->getHashValues($data));
+        $redirect = new Redirect();
+
+        static::assertSame($expected, $redirect->getHashValues($data));
     }
 }
