@@ -185,7 +185,7 @@ class Redirect extends RedirectBase
 
         if ($this->langCode) {
             $data[] = [
-                'LANGUAGE' => $this->langCode,
+                'LANGUAGE' => mb_strtoupper($this->langCode),
             ];
         }
 

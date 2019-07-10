@@ -139,7 +139,7 @@ class RedirectTest extends RedirectBaseTestBase
                             'vat' => '5',
                         ],
                     ],
-                    'langCode' => 'HU',
+                    'langCode' => 'hu',
                     'backrefUrl' => 'http://backref.exmaple.com',
                     'timeoutUrl' => 'http://timeout.exmaple.com',
                     'order' => [
