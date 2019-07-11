@@ -71,9 +71,6 @@ class RedirectTest extends RedirectBaseTestBase
                         'ORDER_QTY[]' => '3',
                     ],
                     [
-                        'DISCOUNT[]' => '4',
-                    ],
-                    [
                         'ORDER_VAT[]' => '5',
                     ],
                     [
@@ -81,6 +78,9 @@ class RedirectTest extends RedirectBaseTestBase
                     ],
                     [
                         'PRICES_CURRENCY' => 'EUR',
+                    ],
+                    [
+                        'DISCOUNT' => '4',
                     ],
                     [
                         'TIMEOUT_URL' => 'http://timeout.exmaple.com',
@@ -126,7 +126,6 @@ class RedirectTest extends RedirectBaseTestBase
                             'description' => 'p1-desc',
                             'price' => '42',
                             'quantity' => '1',
-                            'discount' => '0',
                             'vat' => '2',
                         ]),
                         [
@@ -135,7 +134,6 @@ class RedirectTest extends RedirectBaseTestBase
                             'description' => 'p2-desc',
                             'price' => '43',
                             'quantity' => '3',
-                            'discount' => '4',
                             'vat' => '5',
                         ],
                     ],
@@ -146,7 +144,8 @@ class RedirectTest extends RedirectBaseTestBase
                         'paymentId' => 'Foo',
                         'orderDate' => '2000-01-01 00:00:00',
                         'currency' => 'EUR',
-                        'shippingPrice' => 9.9
+                        'shippingPrice' => 9.9,
+                        'discount' => '4',
                     ],
                     'shippingAddress' => [
                         'firstName' => 'Foo',
@@ -180,16 +179,15 @@ class RedirectTest extends RedirectBaseTestBase
                     'p2 code',
                     'p1 info',
                     'p2 info',
-                    1,
-                    5,
                     2,
-                    6,
+                    5,
                     3,
-                    7,
+                    6,
                     4,
-                    8,
+                    7,
                     'EUR',
                     4.2,
+                    1,
                 ],
                 [
                     [
@@ -208,6 +206,9 @@ class RedirectTest extends RedirectBaseTestBase
                         'ORDER_SHIPPING' => 4.2,
                     ],
                     [
+                        'DISCOUNT' => 1,
+                    ],
+                    [
                         'ORDER_PNAME[]' => 'p1 name',
                     ],
                     [
@@ -217,13 +218,10 @@ class RedirectTest extends RedirectBaseTestBase
                         'ORDER_PINFO[]' => 'p1 info',
                     ],
                     [
-                        'ORDER_PRICE[]' => 1,
+                        'ORDER_PRICE[]' => 2,
                     ],
                     [
-                        'ORDER_QTY[]' => 2,
-                    ],
-                    [
-                        'DISCOUNT[]' => 3,
+                        'ORDER_QTY[]' => 3,
                     ],
                     [
                         'ORDER_VAT[]' => 4,
@@ -244,10 +242,7 @@ class RedirectTest extends RedirectBaseTestBase
                         'ORDER_QTY[]' => 6,
                     ],
                     [
-                        'DISCOUNT[]' => 7,
-                    ],
-                    [
-                        'ORDER_VAT[]' => 8,
+                        'ORDER_VAT[]' => 7,
                     ],
                     [
                         'BILL_EMAIL' => 'example@example.com',

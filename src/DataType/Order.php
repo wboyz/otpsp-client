@@ -15,6 +15,8 @@ class Order extends RedirectBase
         'orderDate' => 'ORDER_DATE',
         'currency' => 'PRICES_CURRENCY',
         'shippingPrice' => 'ORDER_SHIPPING',
+        'discount' => 'DISCOUNT',
+
     ];
 
     /**
@@ -45,6 +47,11 @@ class Order extends RedirectBase
      * @var float
      */
     public $shippingPrice = 0.0;
+
+    /**
+     * @var int
+     */
+    public $discount = 0;
 
     /**
      * {@inheritdoc}

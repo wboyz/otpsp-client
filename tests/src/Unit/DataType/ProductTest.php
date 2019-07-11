@@ -43,9 +43,6 @@ class ProductTest extends RedirectBaseTestBase
                         'ORDER_QTY[]' => 1,
                     ],
                     [
-                        'DISCOUNT[]' => 5,
-                    ],
-                    [
                         'ORDER_VAT[]' => 27,
                     ],
                 ],
@@ -55,7 +52,6 @@ class ProductTest extends RedirectBaseTestBase
                     'quantity' => 1,
                     'price' => 99.9,
                     'description' => 'Bar',
-                    'discount' => 5,
                     'vat' => 27,
                 ],
             ],

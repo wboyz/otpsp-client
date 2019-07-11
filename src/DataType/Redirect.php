@@ -114,7 +114,7 @@ class Redirect extends RedirectBase
         'ORDER_VAT[]',
         'ORDER_SHIPPING',
         'PRICES_CURRENCY',
-        'DISCOUNT[]',
+        'DISCOUNT',
     ];
 
     public function __construct()
@@ -166,6 +166,10 @@ class Redirect extends RedirectBase
         ];
 
         $data[] = [
+            'DISCOUNT' => $this->order->discount,
+        ];
+
+        $data[] = [
             'TIMEOUT_URL' => $this->timeoutUrl,
         ];
 
@@ -201,7 +205,6 @@ class Redirect extends RedirectBase
             'ORDER_PINFO[]' => [],
             'ORDER_PRICE[]' => [],
             'ORDER_QTY[]' => [],
-            'DISCOUNT[]' => [],
             'ORDER_VAT[]' => [],
             'post' => [],
         ];
@@ -223,7 +226,6 @@ class Redirect extends RedirectBase
                     case 'ORDER_PINFO[]':
                     case 'ORDER_PRICE[]':
                     case 'ORDER_QTY[]':
-                    case 'DISCOUNT[]':
                     case 'ORDER_VAT[]':
                         $group = $key;
                         break;

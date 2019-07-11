@@ -16,7 +16,6 @@ class Product extends RedirectBase
         'description' => 'ORDER_PINFO[]',
         'price' => 'ORDER_PRICE[]',
         'quantity' => 'ORDER_QTY[]',
-        'discount' => 'DISCOUNT[]',
         'vat' => 'ORDER_VAT[]',
     ];
 
@@ -55,11 +54,6 @@ class Product extends RedirectBase
      * @var int
      */
     public $quantity = 0;
-
-    /**
-     * @var int
-     */
-    public $discount = 0;
 
     /**
      * @var int
