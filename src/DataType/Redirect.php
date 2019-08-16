@@ -7,35 +7,14 @@ namespace Cheppers\OtpspClient\DataType;
 class Redirect extends RedirectBase
 {
 
-    /**
-     * {@inheritdoc}
-     */
-    protected static $propertyMapping = [
-        'merchantId' => 'MERCHANT',
-        'customerEmail' => 'BILL_EMAIL',
-        'timeoutUrl' => 'TIMEOUT_URL',
-        'backrefUrl' => 'BACK_REF',
-        'langCode' => 'LANGUAGE',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected $requiredFields = [
-        'merchantId',
-        'timeoutUrl',
-        'backrefUrl',
-    ];
-
     public static function __set_state($values)
     {
         /** @var static $instance */
         $instance = parent::__set_state($values);
 
         $keys = [
-            'order' => Order::class,
-            'shippingAddress' => ShippingAddress::class,
-            'billingAddress' => BillingAddress::class,
+            'delivery' => Delivery::class,
+            'invoice' => Invoice::class,
         ];
         foreach ($keys as $key => $className) {
             if (array_key_exists($key, $values) && is_array($values[$key])) {
@@ -43,11 +22,11 @@ class Redirect extends RedirectBase
             }
         }
 
-        if (array_key_exists('products', $values)) {
+        if (array_key_exists('items', $values)) {
             foreach ($values['products'] as $key => $productValues) {
-                $instance->products[] = $productValues instanceof Product ?
+                $instance->items[] = $productValues instanceof Item ?
                     $productValues
-                    : Product::__set_state($productValues);
+                    : Item::__set_state($productValues);
             }
         }
 
@@ -57,7 +36,17 @@ class Redirect extends RedirectBase
     /**
      * @var string
      */
-    public $merchantId = '';
+    public $merchant = '';
+
+    /**
+     * @var string
+     */
+    public $orderRef = '';
+
+    /**
+     * @var string
+     */
+    public $customer = '';
 
     /**
      * @var string
@@ -67,184 +56,142 @@ class Redirect extends RedirectBase
     /**
      * @var string
      */
-    public $timeoutUrl = '';
+    public $language = '';
 
     /**
      * @var string
      */
-    public $backrefUrl = '';
+    public $currency = '';
 
     /**
      * @var string
      */
-    public $langCode = '';
+    public $total = '';
 
     /**
-     * @var Order
+     * @var string
+     *
+     * @todo We need 32character random string.
      */
-    public $order;
-
-    /**
-     * @var Product[]
-     */
-    public $products = [];
-
-    /**
-     * @var ShippingAddress
-     */
-    public $shippingAddress;
-
-    /**
-     * @var BillingAddress
-     */
-    public $billingAddress;
+    public $salt = '98717fead01f2881cf39efba7390068e';
 
     /**
      * @var string[]
      */
-    protected $hashFields = [
-        'MERCHANT',
-        'ORDER_REF',
-        'ORDER_DATE',
-        'ORDER_PNAME[]',
-        'ORDER_PCODE[]',
-        'ORDER_PINFO[]',
-        'ORDER_PRICE[]',
-        'ORDER_QTY[]',
-        'ORDER_VAT[]',
-        'ORDER_SHIPPING',
-        'PRICES_CURRENCY',
-        'DISCOUNT',
+    public $methods = ['CARD'];
+
+    /**
+     * @var Invoice
+     */
+    public $invoice;
+
+    /**
+     * @var Delivery
+     */
+    public $delivery;
+
+    /**
+     * @var Item[]
+     */
+    public $items;
+
+    /**
+     * @var string
+     */
+    public $timeout = '';
+
+    /**
+     * @var string
+     */
+    public $url = '';
+
+    /**
+     * @var string
+     */
+    public $sdkVersion = 'SimplePay_PHP_SDK_2.0_180930:33ccd5ed8e8a965d18abfae333404184';
+
+    /**
+     * {@inheritdoc}
+     */
+    protected $requiredFields = [
+        'merchant',
+        'orderRef',
+        'customer',
+        'customerEmail',
+        'language',
+        'currency',
+        'total',
+        'salt',
+        'methods',
+        'invoice',
+        'timeout',
+        'url',
+        'sdkVersion',
     ];
 
-    public function __construct()
-    {
-        $this->order = new Order();
-        $this->shippingAddress = new ShippingAddress();
-        $this->billingAddress = new BillingAddress();
-    }
-
     /**
      * {@inheritdoc}
      */
-    public function isEmpty(): bool
-    {
-        return !$this->products || $this->order->isEmpty();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function exportData(): array
+    public function exportData(): string
     {
         if ($this->isEmpty()) {
-            return [];
+            return '';
         }
 
-        $data = [
-            [
-                'MERCHANT' => $this->merchantId,
-            ],
-            [
-                'ORDER_REF' => $this->order->paymentId,
-            ],
-            [
-                'ORDER_DATE' => $this->order->orderDate,
-            ],
-        ];
+        $data = [];
 
-        foreach ($this->products as $product) {
-            $data = array_merge($data, $product->exportData());
-        }
-
-        $data[] = [
-            'ORDER_SHIPPING' => $this->order->shippingPrice,
-        ];
-
-        $data[] = [
-            'PRICES_CURRENCY' => $this->order->currency,
-        ];
-
-        $data[] = [
-            'DISCOUNT' => $this->order->discount,
-        ];
-
-        $data[] = [
-            'TIMEOUT_URL' => $this->timeoutUrl,
-        ];
-
-        $data[] = [
-            'BACK_REF' => $this->backrefUrl,
-        ];
-
-        $data[] = [
-            'BILL_EMAIL' => $this->customerEmail,
-        ];
-
-        $data = array_merge(
-            $data,
-            $this->billingAddress->exportData(),
-            $this->shippingAddress->exportData()
-        );
-
-        if ($this->langCode) {
-            $data[] = [
-                'LANGUAGE' => mb_strtoupper($this->langCode),
-            ];
-        }
-
-        return $data;
-    }
-
-    public function getHashValues(array $data): array
-    {
-        $groups = [
-            'pre' => [],
-            'ORDER_PNAME[]' => [],
-            'ORDER_PCODE[]' => [],
-            'ORDER_PINFO[]' => [],
-            'ORDER_PRICE[]' => [],
-            'ORDER_QTY[]' => [],
-            'ORDER_VAT[]' => [],
-            'post' => [],
-        ];
-        foreach ($data as $items) {
-            foreach ($items as $key => $value) {
-                if (!in_array($key, $this->hashFields)) {
-                    continue;
-                }
-
-                switch ($key) {
-                    case 'MERCHANT':
-                    case 'ORDER_REF':
-                    case 'ORDER_DATE':
-                        $group = 'pre';
-                        break;
-
-                    case 'ORDER_PNAME[]':
-                    case 'ORDER_PCODE[]':
-                    case 'ORDER_PINFO[]':
-                    case 'ORDER_PRICE[]':
-                    case 'ORDER_QTY[]':
-                    case 'ORDER_VAT[]':
-                        $group = $key;
-                        break;
-
-                    default:
-                        $group = 'post';
-                }
-
-                $groups[$group][] = $value;
+        foreach (array_keys(get_object_vars($this)) as $key) {
+            switch ($key) {
+                case 'merchant':
+                    $data['merchant'] = $this->merchant;
+                    break;
+                case 'orderRef':
+                    $data['orderRef'] = $this->orderRef;
+                    break;
+                case 'customer':
+                    $data['customer'] = $this->customer;
+                    break;
+                case 'customerEmail':
+                    $data['customerEmail'] = $this->customerEmail;
+                    break;
+                case 'language':
+                    $data['language'] = $this->language;
+                    break;
+                case 'currency':
+                    $data['currency'] = $this->currency;
+                    break;
+                case 'total':
+                    $data['total'] = $this->total;
+                    break;
+                case 'salt':
+                    $data['salt'] = $this->salt;
+                    break;
+                case 'methods':
+                    $data['methods'] = $this->methods;
+                    break;
+                case 'invoice':
+                    $data['invoice'] = $this->invoice->exportData();
+                    break;
+                case 'delivery':
+                    $data['delivery'] = $this->delivery->exportData();
+                    break;
+                case 'items':
+                    foreach ($this->items as $item) {
+                        $data['items'][] = $item->exportData();
+                    }
+                    break;
+                case 'timeout':
+                    $data['timeout'] = $this->timeout;
+                    break;
+                case 'url':
+                    $data['url'] = $this->url;
+                    break;
+                case 'sdkVersion':
+                    $data['sdkVersion'] = $this->sdkVersion;
+                    break;
             }
         }
 
-        $values = [];
-        foreach ($groups as $group => $items) {
-            foreach ($items as $item) {
-                $values[] = $item;
-            }
-        }
-
-        return $values;
+        return json_encode($data);
     }
 }

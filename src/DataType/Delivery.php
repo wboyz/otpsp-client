@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
-class ShippingAddress extends RedirectBase
+class Delivery extends RedirectBase
 {
 
     /**

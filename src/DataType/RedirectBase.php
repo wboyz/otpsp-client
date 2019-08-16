@@ -7,26 +7,19 @@ namespace Cheppers\OtpspClient\DataType;
 abstract class RedirectBase
 {
 
-    /**
-     * @var string[]
-     */
-    protected static $propertyMapping = [];
-
     public static function __set_state($values)
     {
         $instance = new static();
-        foreach (array_keys(static::$propertyMapping) as $internal) {
-            if (!array_key_exists($internal, $values) || !property_exists($instance, $internal)) {
+        foreach (array_keys(get_object_vars($instance)) as $key) {
+            if (!array_key_exists($key, $values)) {
                 continue;
             }
 
-            $instance->{$internal} = $values[$internal];
+            $instance->{$key} = $values[$key];
         }
 
         return $instance;
     }
-
-    abstract public function isEmpty(): bool;
 
     /**
      * Internal name of the required fields.
@@ -35,24 +28,35 @@ abstract class RedirectBase
      */
     protected $requiredFields = [];
 
-    public function exportData(): array
+    public function isEmpty(): bool
+    {
+        foreach ($this->requiredFields as $requiredField) {
+            if (!isset($this->{$requiredField})) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function exportData(): string
     {
         if ($this->isEmpty()) {
-            return [];
+            return '';
         }
 
         $data = [];
-        foreach (static::$propertyMapping as $internal => $external) {
-            $value =  $this->{$internal};
-            if (!in_array($internal, $this->requiredFields) && !$value) {
+        foreach (array_keys(get_object_vars($this)) as $key) {
+            $value =  $this->{$key};
+            if (!in_array($key, $this->requiredFields) && !$value) {
                 continue;
             }
 
             $data[] = [
-                $external => $value,
+                $key => $value,
             ];
         }
 
-        return $data;
+        return json_encode($data);
     }
 }
