@@ -18,7 +18,7 @@ abstract class RedirectBaseTestBase extends TestCase
     /**
      * @dataProvider casesExportData
      */
-    public function testExportData(string $expected, array $values)
+    public function testExportData(array $expected, array $values)
     {
         $data = $this->className::__set_state($values);
         static::assertSame($expected, $data->exportData());

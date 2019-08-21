@@ -39,24 +39,22 @@ abstract class RedirectBase
         return false;
     }
 
-    public function exportData(): string
+    public function exportData(): array
     {
         if ($this->isEmpty()) {
-            return '';
+            return [];
         }
 
         $data = [];
         foreach (array_keys(get_object_vars($this)) as $key) {
             $value =  $this->{$key};
-            if (!in_array($key, $this->requiredFields) && !$value) {
+            if ((!in_array($key, $this->requiredFields) && !$value) || $key === 'requiredFields') {
                 continue;
             }
 
-            $data[] = [
-                $key => $value,
-            ];
+            $data[$key] = $value;
         }
 
-        return json_encode($data);
+        return $data;
     }
 }

@@ -6,44 +6,25 @@ namespace Cheppers\OtpspClient\DataType;
 
 class Item extends RedirectBase
 {
-
     /**
-     * {@inheritdoc}
+     * @var string
      */
-    protected static $propertyMapping = [
-        'productName' => 'ORDER_PNAME[]',
-        'sku' => 'ORDER_PCODE[]',
-        'description' => 'ORDER_PINFO[]',
-        'price' => 'ORDER_PRICE[]',
-        'quantity' => 'ORDER_QTY[]',
-        'vat' => 'ORDER_VAT[]',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected $requiredFields = [
-        'productName',
-        'sku',
-        'price',
-        'quantity',
-        'vat',
-    ];
+    public $ref = '';
 
     /**
      * @var string
      */
-    public $productName = '';
-
-    /**
-     * @var string
-     */
-    public $sku = '';
+    public $title = '';
 
     /**
      * @var string
      */
     public $description = '';
+
+    /**
+     * @var int
+     */
+    public $amount = 0;
 
     /**
      * @var float
@@ -53,18 +34,14 @@ class Item extends RedirectBase
     /**
      * @var int
      */
-    public $quantity = 0;
-
-    /**
-     * @var int
-     */
-    public $vat = '0';
+    public $tax = '0';
 
     /**
      * {@inheritdoc}
      */
-    public function isEmpty(): bool
-    {
-        return $this->sku === '';
-    }
+    protected $requiredFields = [
+        'title',
+        'price',
+        'amount',
+    ];
 }

@@ -9,24 +9,33 @@ class Redirect extends RedirectBase
 
     public static function __set_state($values)
     {
-        /** @var static $instance */
-        $instance = parent::__set_state($values);
+        $instance = new static();
 
-        $keys = [
-            'delivery' => Delivery::class,
-            'invoice' => Invoice::class,
-        ];
-        foreach ($keys as $key => $className) {
-            if (array_key_exists($key, $values) && is_array($values[$key])) {
-                $instance->{$key} = $className::__set_state($values[$key]);
+        foreach (array_keys(get_object_vars($instance)) as $key) {
+            if (!array_key_exists($key, $values)) {
+                continue;
             }
-        }
 
-        if (array_key_exists('items', $values)) {
-            foreach ($values['products'] as $key => $productValues) {
-                $instance->items[] = $productValues instanceof Item ?
-                    $productValues
-                    : Item::__set_state($productValues);
+            switch ($key) {
+                case 'delivery':
+                    $instance->delivery = Address::__set_state($values['delivery']);
+                    break;
+                case 'invoice':
+                    $instance->invoice = Address::__set_state($values['invoice']);
+                    break;
+                case 'urls':
+                    $instance->urls = Urls::__set_state($values['urls']);
+                    break;
+                case 'items':
+                    if (!is_array($values['items'])) {
+                        break;
+                    }
+                    foreach ($values['items'] as $item) {
+                        $instance->items[] = Item::__set_state($item);
+                    }
+                    break;
+                default:
+                    $instance->{$key} = $values[$key];
             }
         }
 
@@ -81,12 +90,12 @@ class Redirect extends RedirectBase
     public $methods = ['CARD'];
 
     /**
-     * @var Invoice
+     * @var Address
      */
     public $invoice;
 
     /**
-     * @var Delivery
+     * @var Address
      */
     public $delivery;
 
@@ -94,6 +103,16 @@ class Redirect extends RedirectBase
      * @var Item[]
      */
     public $items;
+
+    /**
+     * @var int
+     */
+    public $shippingCost = 0;
+
+    /**
+     * @var int
+     */
+    public $discount = 0;
 
     /**
      * @var string
@@ -104,6 +123,11 @@ class Redirect extends RedirectBase
      * @var string
      */
     public $url = '';
+
+    /**
+     * @var Urls
+     */
+    public $urls;
 
     /**
      * @var string
@@ -129,10 +153,36 @@ class Redirect extends RedirectBase
         'sdkVersion',
     ];
 
-    /**
-     * {@inheritdoc}
-     */
-    public function exportData(): string
+    public function exportData(): array
+    {
+        if ($this->isEmpty()) {
+            return [];
+        }
+
+        $data = [];
+        foreach (array_keys(get_object_vars($this)) as $key) {
+            $value =  $this->{$key};
+            if ((!in_array($key, $this->requiredFields) && !$value) || $key === 'requiredFields') {
+                continue;
+            }
+            if ($value instanceof RedirectBase) {
+                $data[$key] = $value->exportData();
+                continue;
+            }
+            if ($key === 'items') {
+                foreach ($this->items as $item) {
+                    $data[$key][] = $item->exportData();
+                }
+                continue;
+            }
+
+            $data[$key] = $value;
+        }
+
+        return $data;
+    }
+
+    public function exportJsonString(): string
     {
         if ($this->isEmpty()) {
             return '';
@@ -180,11 +230,20 @@ class Redirect extends RedirectBase
                         $data['items'][] = $item->exportData();
                     }
                     break;
+                case 'shippingCost':
+                    $data['shippingCost'] = $this->shippingCost;
+                    break;
+                case 'discount':
+                    $data['discount'] = $this->discount;
+                    break;
                 case 'timeout':
                     $data['timeout'] = $this->timeout;
                     break;
                 case 'url':
                     $data['url'] = $this->url;
+                    break;
+                case 'urls':
+                    $data['urls'] = $this->urls->exportData();
                     break;
                 case 'sdkVersion':
                     $data['sdkVersion'] = $this->sdkVersion;

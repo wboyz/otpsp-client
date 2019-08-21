@@ -8,28 +8,14 @@ use InvalidArgumentException;
 
 class Checksum
 {
+    protected $hashAlgorithm = 'sha384';
 
-    /**
-     * @var string
-     */
-    public $hashAlgorithm = 'md5';
-
-    public function calculate(array $data, string $secretKey): string
+    public function calculate(string $data, string $secretKey): string
     {
         if (empty($data)) {
             return '';
         }
 
-        $hashString = '';
-
-        foreach ($data as $field) {
-            if (is_array($field)) {
-                throw new InvalidArgumentException('Data can not be multidimensional array.', 1);
-            }
-
-            $hashString .= strlen(stripslashes($field)) . $field;
-        }
-
-        return hash_hmac($this->hashAlgorithm, $hashString, trim($secretKey));
+        return base64_encode(hash_hmac($this->hashAlgorithm, $data, trim($secretKey), true));
     }
 }
