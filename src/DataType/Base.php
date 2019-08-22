@@ -4,9 +4,8 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
-abstract class RedirectBase
+class Base
 {
-
     public static function __set_state($values)
     {
         $instance = new static();

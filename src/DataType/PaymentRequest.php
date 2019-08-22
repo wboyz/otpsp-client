@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
-class Redirect extends RedirectBase
+class PaymentRequest extends RequestBase
 {
 
     public static function __set_state($values)
@@ -27,9 +27,6 @@ class Redirect extends RedirectBase
                     $instance->urls = Urls::__set_state($values['urls']);
                     break;
                 case 'items':
-                    if (!is_array($values['items'])) {
-                        break;
-                    }
                     foreach ($values['items'] as $item) {
                         $instance->items[] = Item::__set_state($item);
                     }
@@ -79,10 +76,8 @@ class Redirect extends RedirectBase
 
     /**
      * @var string
-     *
-     * @todo We need 32character random string.
      */
-    public $salt = '98717fead01f2881cf39efba7390068e';
+    public $salt = '';
 
     /**
      * @var string[]
@@ -102,7 +97,7 @@ class Redirect extends RedirectBase
     /**
      * @var Item[]
      */
-    public $items;
+    public $items = [];
 
     /**
      * @var int
@@ -153,6 +148,14 @@ class Redirect extends RedirectBase
         'sdkVersion',
     ];
 
+    public function __construct()
+    {
+        $this->invoice = new Address();
+        $this->delivery = new Address();
+        $this->urls = new Urls();
+    }
+
+
     public function exportData(): array
     {
         if ($this->isEmpty()) {
@@ -165,7 +168,7 @@ class Redirect extends RedirectBase
             if ((!in_array($key, $this->requiredFields) && !$value) || $key === 'requiredFields') {
                 continue;
             }
-            if ($value instanceof RedirectBase) {
+            if ($value instanceof RequestBase) {
                 $data[$key] = $value->exportData();
                 continue;
             }
@@ -182,12 +185,11 @@ class Redirect extends RedirectBase
         return $data;
     }
 
-    public function exportJsonString(): string
+    /**
+     * {@inheritdoc}
+     */
+    public function jsonSerialize()
     {
-        if ($this->isEmpty()) {
-            return '';
-        }
-
         $data = [];
 
         foreach (array_keys(get_object_vars($this)) as $key) {
@@ -251,6 +253,6 @@ class Redirect extends RedirectBase
             }
         }
 
-        return json_encode($data);
+        return $data;
     }
 }

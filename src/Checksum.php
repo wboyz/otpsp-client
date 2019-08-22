@@ -4,8 +4,6 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient;
 
-use InvalidArgumentException;
-
 class Checksum
 {
     protected $hashAlgorithm = 'sha384';

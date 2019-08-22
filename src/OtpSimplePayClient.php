@@ -9,7 +9,8 @@ use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
 use Cheppers\OtpspClient\DataType\InstantRefundNotification;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
-use Cheppers\OtpspClient\DataType\Redirect;
+use Cheppers\OtpspClient\DataType\PaymentRequest;
+use Cheppers\OtpspClient\DataType\StartResponse;
 use DateTimeInterface;
 use DOMDocument;
 use DOMXPath;
@@ -168,73 +169,49 @@ class OtpSimplePayClient implements LoggerAwareInterface
         $this->dateTime = $dateTime;
     }
 
-    public function startPayment(Redirect $redirect)
+    /**
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Exception
+     */
+    public function startPayment(PaymentRequest $paymentRequest): ?StartResponse
     {
-        $data = $redirect->exportJsonString();
+        $requestMessage = json_encode($paymentRequest->jsonSerialize());
         $header = [
             'Content-type' => 'application/json',
-            'Signature' => $this->checksum->calculate($data, $this->secretKey),
+            'Signature' => $this->checksum->calculate($requestMessage, $this->secretKey),
         ];
 
-        $request = new Request('POST', $this->getUri('/start'), $header, $redirect->exportJsonString());
+        $request = new Request('POST', $this->getUri('start'), $header, $requestMessage);
 
-        return $this->client->send($request);
-    }
+        $response = $this->client->send($request);
 
-    /**
-     * {@inheritdoc}
-     */
-    public function parseResponseXml(string $xml): array
-    {
-        // @todo Validate with *.xsd.
-        $doc = new DOMDocument();
-        $doc->loadXML($xml);
-        $rootNode = $doc->childNodes->item(0);
+        $signature = $response->getHeader('signature')[0];
+        $message = $response->getBody()->getContents();
 
-        $values = [];
-        $xpath = new DOMXPath($doc);
-        /** @var \DOMNode $node */
-        foreach ($xpath->query('./*', $rootNode) as $node) {
-            $values[$node->nodeName] = $node->textContent;
+        if ($signature === []
+            || $message === ''
+            || $response->getHeader('Content-Type')[0] !== 'application/json;charset=UTF-8'
+        ) {
+            throw new \Exception('Starting payment failed', 1);
         }
 
-        if (array_key_exists('STATUS_CODE', $values)) {
-            settype($values['STATUS_CODE'], 'int');
+        if (!$this->isValidChecksum($signature, $message)) {
+            throw new \Exception('Invalid response', 1);
         }
 
-        return $values;
+        $data = json_decode($message, true);
+
+        if ($data === false) {
+            throw new \Exception('Invalid json response', 1);
+        }
+
+        return StartResponse::__set_state($data);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function parseResponseString(string $xml, string $dateKey): array
-    {
-        $ePayment = [
-            'ORDER_REF',
-            'STATUS_CODE',
-            'STATUS_NAME',
-            $dateKey,
-            'HASH',
-        ];
-
-        // @todo Validate with *.xsd.
-        $doc = new DOMDocument();
-        $doc->loadXML($xml);
-        $rootNode = $doc->childNodes->item(0);
-        $values = explode('|', $rootNode->nodeValue);
-
-        return array_combine($ePayment, $values);
-    }
 
     protected function getUri(string $path): string
     {
         return $this->getBaseUri() . "/$path";
-    }
-
-    public function getLiveUpdateUrl(): string
-    {
-        return $this->getUri('order/lu.php');
     }
 
     /**

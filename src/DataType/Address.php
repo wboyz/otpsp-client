@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
-class Address extends RedirectBase
+class Address extends Base
 {
     /**
      * @var string
