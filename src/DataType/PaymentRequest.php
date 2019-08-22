@@ -155,36 +155,6 @@ class PaymentRequest extends RequestBase
         $this->urls = new Urls();
     }
 
-
-    public function exportData(): array
-    {
-        if ($this->isEmpty()) {
-            return [];
-        }
-
-        $data = [];
-        foreach (array_keys(get_object_vars($this)) as $key) {
-            $value =  $this->{$key};
-            if ((!in_array($key, $this->requiredFields) && !$value) || $key === 'requiredFields') {
-                continue;
-            }
-            if ($value instanceof RequestBase) {
-                $data[$key] = $value->exportData();
-                continue;
-            }
-            if ($key === 'items') {
-                foreach ($this->items as $item) {
-                    $data[$key][] = $item->exportData();
-                }
-                continue;
-            }
-
-            $data[$key] = $value;
-        }
-
-        return $data;
-    }
-
     /**
      * {@inheritdoc}
      */
@@ -245,6 +215,13 @@ class PaymentRequest extends RequestBase
                     $data['url'] = $this->url;
                     break;
                 case 'urls':
+                    if ($this->urls->success === ''
+                        && $this->urls->cancel === ''
+                        && $this->urls->fail === ''
+                        && $this->urls->timeout === ''
+                    ) {
+                        break;
+                    }
                     $data['urls'] = $this->urls->exportData();
                     break;
                 case 'sdkVersion':

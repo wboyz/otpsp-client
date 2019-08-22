@@ -4,17 +4,11 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient;
 
-use Cheppers\OtpspClient\DataType\BackRef;
-use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
-use Cheppers\OtpspClient\DataType\InstantOrderStatus;
-use Cheppers\OtpspClient\DataType\InstantRefundNotification;
+use Cheppers\OtpspClient\DataType\BackResponse;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use Cheppers\OtpspClient\DataType\PaymentRequest;
 use Cheppers\OtpspClient\DataType\StartResponse;
 use DateTimeInterface;
-use DOMDocument;
-use DOMXPath;
-use Exception;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use Psr\Log\LoggerAwareInterface;
@@ -96,26 +90,6 @@ class OtpSimplePayClient implements LoggerAwareInterface
     /**
      * @var string
      */
-    protected $merchantId = '';
-
-    public function getMerchantId(): string
-    {
-        return $this->merchantId;
-    }
-
-    /**
-     * @return $this
-     */
-    public function setMerchantId(string $merchantId)
-    {
-        $this->merchantId = $merchantId;
-
-        return $this;
-    }
-
-    /**
-     * @var string
-     */
     protected $secretKey = '';
 
     public function getSecretKey(): string
@@ -176,6 +150,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
     public function startPayment(PaymentRequest $paymentRequest): ?StartResponse
     {
         $requestMessage = json_encode($paymentRequest->jsonSerialize());
+
         $header = [
             'Content-type' => 'application/json',
             'Signature' => $this->checksum->calculate($requestMessage, $this->secretKey),
@@ -208,22 +183,30 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return StartResponse::__set_state($data);
     }
 
+    /**
+     * @throws \Exception
+     */
+    public function parseBackResponse(string $url): ?BackResponse
+    {
+        $values = Utils::getQueryFromUrl($url);
+
+        if (!$values['r'] || !$values['s']) {
+            throw new \Exception('Invalid response');
+        }
+
+        $responseMessage = base64_decode($values['r']);
+
+        if (!$this->isValidChecksum($values['s'], $responseMessage)) {
+            throw new \Exception('Invalid response');
+        }
+
+        return BackResponse::__set_state(json_decode($responseMessage, true));
+    }
+
 
     protected function getUri(string $path): string
     {
         return $this->getBaseUri() . "/$path";
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function parseInstantPaymentNotificationRequest(string $body): InstantPaymentNotification
-    {
-        // @todo Parse requests by url, headers and body.
-        $values = [];
-        parse_str($body, $values);
-
-        return InstantPaymentNotification::__set_state($values);
     }
 
     /**
@@ -236,19 +219,5 @@ class OtpSimplePayClient implements LoggerAwareInterface
             ->calculate($values, $this->getSecretKey());
 
         return $expectedHash === $actualHash;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getInstantPaymentNotificationFailedResponse(): array
-    {
-        return [
-            'headers' => [
-                'Content-Type' => 'text/plain',
-            ],
-            'body' => 'Instant Payment Notification cannot be processed',
-            'statusCode' => 503,
-        ];
     }
 }

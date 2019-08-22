@@ -7,29 +7,16 @@ namespace Cheppers\OtpspClient;
 class Utils
 {
 
-    public static function flatArray(array $array = [], array $skip = []): array
+    public static function getQueryFromUrl(string $url)
     {
-        if (count($array) === 0) {
-            return [];
+        $query = parse_url($url, PHP_URL_QUERY);
+        if (!$query) {
+            return null;
         }
 
-        $return = [];
-        foreach ($array as $name => $item) {
-            if (in_array($name, $skip)) {
-                continue;
-            }
+        $values =[];
+        parse_str($query, $values);
 
-            if (is_array($item)) {
-                foreach ($item as $subItem) {
-                    $return[] = $subItem;
-                }
-
-                continue;
-            }
-
-            $return[] = $item;
-        }
-
-        return $return;
+        return $values;
     }
 }

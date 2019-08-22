@@ -3,6 +3,7 @@
 namespace Cheppers\OtpspClient\Tests\Unit;
 
 use Cheppers\OtpspClient\Checksum;
+use Cheppers\OtpspClient\DataType\BackResponse;
 use Cheppers\OtpspClient\DataType\PaymentRequest;
 use Cheppers\OtpspClient\DataType\StartResponse;
 use Cheppers\OtpspClient\OtpSimplePayClient;
@@ -94,5 +95,44 @@ class OtpSimplePayClientTest extends TestCase
             'https://sandbox.simplepay.hu/payment/v2/start',
             (string) $request->getUri()
         );
+    }
+
+    public function casesParseBackResponse()
+    {
+        $backResponse = new BackResponse();
+        $backResponse->merchant = 'test-merchant';
+        $backResponse->event = 'SUCCESS';
+        $backResponse->transactionId = 99999999;
+        $backResponse->responseCode = 0;
+        $backResponse->orderId = 'test-order-id';
+
+        return [
+            'basic' => [
+                $backResponse,
+                implode('', [
+                    'http://test.io/en/?',
+                    'r=eyJyIjowLCJ0Ijo5OTk5OTk5OSwiZSI6IlNVQ0NFU1MiLCJtIjoidGV',
+                    'zdC1tZXJjaGFudCIsIm8iOiJ0ZXN0LW9yZGVyLWlkIn0=&',
+                    's=nZSWubLZFBHZl0ylAyLcWzsQ6NoD0fX3UMXrTt13/vNjsQfV8L/URUyYBWx3X6TZ',
+                ]),
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesParseBackResponse
+     *
+     * @throws \Exception
+     */
+    public function testParseBackResponse(BackResponse $expected, string $url)
+    {
+        $logger = new NullLogger();
+        $serializer = new Checksum();
+        $dateTime = new DateTime();
+        $client = new Client();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->setSecretKey('')
+            ->parseBackResponse($url);
+        static::assertEquals($expected, $actual);
     }
 }

@@ -6,7 +6,6 @@ namespace Cheppers\OtpspClient\DataType;
 
 class ResponseBase
 {
-
     public static function __set_state($values)
     {
         $instance = new static();

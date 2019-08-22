@@ -127,7 +127,6 @@ class PaymentRequestTest extends RequestBaseTestBase
                     'discount' => 0,
                     'timeout' => '',
                     'url' => '',
-                    'urls' => [],
                     'sdkVersion' => 'SimplePay_PHP_SDK_2.0_180930:33ccd5ed8e8a965d18abfae333404184',
                 ],
                 new PaymentRequest(),
