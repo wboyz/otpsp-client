@@ -20,22 +20,4 @@ abstract class RequestBase implements \JsonSerializable
 
         return $instance;
     }
-
-    /**
-     * Internal name of the required fields.
-     *
-     * @var string[]
-     */
-    protected $requiredFields = [];
-
-    public function isEmpty(): bool
-    {
-        foreach ($this->requiredFields as $requiredField) {
-            if (!isset($this->{$requiredField})) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

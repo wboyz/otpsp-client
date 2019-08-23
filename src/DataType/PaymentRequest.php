@@ -129,25 +129,6 @@ class PaymentRequest extends RequestBase
      */
     public $sdkVersion = 'SimplePay_PHP_SDK_2.0_180930:33ccd5ed8e8a965d18abfae333404184';
 
-    /**
-     * {@inheritdoc}
-     */
-    protected $requiredFields = [
-        'merchant',
-        'orderRef',
-        'customer',
-        'customerEmail',
-        'language',
-        'currency',
-        'total',
-        'salt',
-        'methods',
-        'invoice',
-        'timeout',
-        'url',
-        'sdkVersion',
-    ];
-
     public function __construct()
     {
         $this->invoice = new Address();

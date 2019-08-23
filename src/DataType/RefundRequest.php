@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
-class InstantRefundNotification extends ResponseBase
+class RefundRequest extends RequestBase
 {
 
     /**
@@ -26,4 +26,9 @@ class InstantRefundNotification extends ResponseBase
      * @var string
      */
     public $irnDate = '';
+
+    public function jsonSerialize()
+    {
+        // TODO: Implement jsonSerialize() method.
+    }
 }

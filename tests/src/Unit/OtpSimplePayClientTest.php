@@ -4,6 +4,7 @@ namespace Cheppers\OtpspClient\Tests\Unit;
 
 use Cheppers\OtpspClient\Checksum;
 use Cheppers\OtpspClient\DataType\BackResponse;
+use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use Cheppers\OtpspClient\DataType\PaymentRequest;
 use Cheppers\OtpspClient\DataType\StartResponse;
 use Cheppers\OtpspClient\OtpSimplePayClient;
@@ -13,6 +14,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Request;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -133,6 +135,59 @@ class OtpSimplePayClientTest extends TestCase
         $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
             ->setSecretKey('')
             ->parseBackResponse($url);
+        static::assertEquals($expected, $actual);
+    }
+
+    public function casesParseInstantPaymentNotificationRequest()
+    {
+        return [
+            'basic' => [
+                InstantPaymentNotification::__set_state([
+                    'salt' => 'test-salt',
+                    'orderRef' => 'test-orderRef',
+                    'method' => 'test-card',
+                    'merchant' => 'test-merchant',
+                    'finishDate' => 'test-finishDate',
+                    'paymentDate' => 'test-paymentDate',
+                    'transactionId' => 42,
+                    'status' => 'test-status',
+                ]),
+                new Request(
+                    'POST',
+                    'test-uri.com',
+                    [
+                        'Content-Type' => 'application/json',
+                        'Signature' => 'jRLcA9EYhm+xjfyXCJ9ft/OUuhgtRR5Ct2IQYCXAlTGtubvn7kBsBmp/5K2ExlGi',
+                    ],
+                    json_encode([
+                        'salt' => 'test-salt',
+                        'orderRef' => 'test-orderRef',
+                        'method' => 'test-card',
+                        'merchant' => 'test-merchant',
+                        'finishDate' => 'test-finishDate',
+                        'paymentDate' => 'test-paymentDate',
+                        'transactionId' => 42,
+                        'status' => 'test-status',
+                    ])
+                ),
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesParseInstantPaymentNotificationRequest
+     *
+     * @throws \Exception
+     */
+    public function testParseInstantPaymentNotificationRequest(InstantPaymentNotification $expected, Request $request)
+    {
+        $logger = new NullLogger();
+        $serializer = new Checksum();
+        $dateTime = new DateTime();
+        $client = new Client();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->setSecretKey('')
+            ->parseInstantPaymentNotificationRequest($request);
         static::assertEquals($expected, $actual);
     }
 }

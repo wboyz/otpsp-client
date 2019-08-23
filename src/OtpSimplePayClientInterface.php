@@ -7,7 +7,7 @@ namespace Cheppers\OtpspClient;
 use Cheppers\OtpspClient\DataType\BackRef;
 use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
 use Cheppers\OtpspClient\DataType\InstantOrderStatus;
-use Cheppers\OtpspClient\DataType\InstantRefundNotification;
+use Cheppers\OtpspClient\DataType\RefundRequest;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use DateTimeInterface;
 use GuzzleHttp\ClientInterface;
@@ -75,7 +75,7 @@ interface OtpSimplePayClientInterface
         string $orderAmount,
         string $orderCurrency,
         string $refundAmount
-    ): ?InstantRefundNotification;
+    ): ?RefundRequest;
 
     public function instantOrderStatusPost(string $refNoExt): ?InstantOrderStatus;
 

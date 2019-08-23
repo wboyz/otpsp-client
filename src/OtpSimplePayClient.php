@@ -7,10 +7,13 @@ namespace Cheppers\OtpspClient;
 use Cheppers\OtpspClient\DataType\BackResponse;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use Cheppers\OtpspClient\DataType\PaymentRequest;
+use Cheppers\OtpspClient\DataType\RequestBase;
 use Cheppers\OtpspClient\DataType\StartResponse;
 use DateTimeInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -149,16 +152,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
      */
     public function startPayment(PaymentRequest $paymentRequest): ?StartResponse
     {
-        $requestMessage = json_encode($paymentRequest->jsonSerialize());
-
-        $header = [
-            'Content-type' => 'application/json',
-            'Signature' => $this->checksum->calculate($requestMessage, $this->secretKey),
-        ];
-
-        $request = new Request('POST', $this->getUri('start'), $header, $requestMessage);
-
-        $response = $this->client->send($request);
+        $response = $this->createRequest($paymentRequest, 'start');
 
         $signature = $response->getHeader('signature')[0];
         $message = $response->getBody()->getContents();
@@ -203,6 +197,44 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return BackResponse::__set_state(json_decode($responseMessage, true));
     }
 
+    /**
+     * @throws \Exception
+     */
+    public function parseInstantPaymentNotificationRequest(Request $request): ?InstantPaymentNotification
+    {
+        $signature = $request->getHeader('Signature')[0];
+        $message = $request->getBody()->getContents();
+
+        if (!$signature || !$message || !$this->isValidChecksum($signature, $message)) {
+            throw new \Exception('Invalid response', 1);
+        }
+
+        $data = json_decode($message, true);
+
+        if ($data === false || $data === null) {
+            throw new \Exception('Invalid json string', 1);
+        }
+
+        return InstantPaymentNotification::__set_state($data);
+    }
+
+    public function getInstantPaymentNotificationSuccessResponse(
+        InstantPaymentNotification $instantPaymentNotification
+    ): ResponseInterface
+    {
+        $instantPaymentNotification->receiveDate = (new \DateTime('now'))->format('Y-m-d\TH:i:sP');
+
+        $message = json_encode($instantPaymentNotification);
+        print_r($message);
+        return new Response(
+            200,
+            [
+                'Content-Type' => 'application/json',
+                'Signature' => $this->checksum->calculate($message, $this->secretKey),
+            ],
+            $message
+        );
+    }
 
     protected function getUri(string $path): string
     {
@@ -219,5 +251,20 @@ class OtpSimplePayClient implements LoggerAwareInterface
             ->calculate($values, $this->getSecretKey());
 
         return $expectedHash === $actualHash;
+    }
+
+    /**
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function createRequest(RequestBase $requestType, string $path): ResponseInterface
+    {
+        $requestMessage = json_encode($requestType->jsonSerialize());
+
+        $header = [
+            'Content-type' => 'application/json',
+            'Signature' => $this->checksum->calculate($requestMessage, $this->secretKey),
+        ];
+
+        return $this->client->send(new Request('POST', $this->getUri($path), $header, $requestMessage));
     }
 }
