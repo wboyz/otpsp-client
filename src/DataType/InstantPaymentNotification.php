@@ -4,27 +4,13 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
-class InstantPaymentNotification extends RequestBase
+class InstantPaymentNotification extends ResponseBase implements \JsonSerializable
 {
-    /**
-     * @var string
-     */
-    public $salt = '';
-
-    /**
-     * @var string
-     */
-    public $orderRef = '';
 
     /**
      * @var string
      */
     public $method = 'CARD';
-
-    /**
-     * @var string
-     */
-    public $merchant = '';
 
     /**
      * @var string
@@ -35,11 +21,6 @@ class InstantPaymentNotification extends RequestBase
      * @var string
      */
     public $paymentDate = '';
-
-    /**
-     * @var int
-     */
-    public $transactionId = 0;
 
     /**
      * @var string

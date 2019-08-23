@@ -7,8 +7,10 @@ namespace Cheppers\OtpspClient;
 use Cheppers\OtpspClient\DataType\BackResponse;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use Cheppers\OtpspClient\DataType\PaymentRequest;
+use Cheppers\OtpspClient\DataType\RefundRequest;
+use Cheppers\OtpspClient\DataType\RefundResponse;
 use Cheppers\OtpspClient\DataType\RequestBase;
-use Cheppers\OtpspClient\DataType\StartResponse;
+use Cheppers\OtpspClient\DataType\PaymentResponse;
 use DateTimeInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
@@ -150,10 +152,9 @@ class OtpSimplePayClient implements LoggerAwareInterface
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Exception
      */
-    public function startPayment(PaymentRequest $paymentRequest): ?StartResponse
+    public function startPayment(PaymentRequest $paymentRequest): ?PaymentResponse
     {
         $response = $this->createRequest($paymentRequest, 'start');
-
         $signature = $response->getHeader('signature')[0];
         $message = $response->getBody()->getContents();
 
@@ -174,7 +175,37 @@ class OtpSimplePayClient implements LoggerAwareInterface
             throw new \Exception('Invalid json response', 1);
         }
 
-        return StartResponse::__set_state($data);
+        return PaymentResponse::__set_state($data);
+    }
+
+    /**
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Exception
+     */
+    public function startRefund(RefundRequest $refundRequest): ?RefundResponse
+    {
+        $response = $this->createRequest($refundRequest, 'refund');
+        $signature = $response->getHeader('signature')[0];
+        $message = $response->getBody()->getContents();
+
+        if ($signature === []
+            || $message === ''
+            || $response->getHeader('Content-Type')[0] !== 'application/json;charset=UTF-8'
+        ) {
+            throw new \Exception('Refund payment failed', 1);
+        }
+
+        if (!$this->isValidChecksum($signature, $message)) {
+            throw new \Exception('Invalid response', 1);
+        }
+
+        $data = json_decode($message, true);
+
+        if ($data === false) {
+            throw new \Exception('Invalid json response', 1);
+        }
+
+        return RefundResponse::__set_state($data);
     }
 
     /**
@@ -220,8 +251,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     public function getInstantPaymentNotificationSuccessResponse(
         InstantPaymentNotification $instantPaymentNotification
-    ): ResponseInterface
-    {
+    ): ResponseInterface {
         $instantPaymentNotification->receiveDate = (new \DateTime('now'))->format('Y-m-d\TH:i:sP');
 
         $message = json_encode($instantPaymentNotification);

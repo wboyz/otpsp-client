@@ -6,7 +6,9 @@ use Cheppers\OtpspClient\Checksum;
 use Cheppers\OtpspClient\DataType\BackResponse;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use Cheppers\OtpspClient\DataType\PaymentRequest;
-use Cheppers\OtpspClient\DataType\StartResponse;
+use Cheppers\OtpspClient\DataType\PaymentResponse;
+use Cheppers\OtpspClient\DataType\RefundRequest;
+use Cheppers\OtpspClient\DataType\RefundResponse;
 use Cheppers\OtpspClient\OtpSimplePayClient;
 use DateTime;
 use GuzzleHttp\Client;
@@ -27,7 +29,7 @@ class OtpSimplePayClientTest extends TestCase
 
         return [
             'basic' => [
-                StartResponse::__set_state([
+                PaymentResponse::__set_state([
                     'salt' => 'bwivfsgm8aSmiSTyZ0FYILvu2wgO0NKe',
                     'merchant' => 'test-merchant',
                     'orderRef' => 'test-order-ref',
@@ -55,7 +57,7 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesStartPayment
      */
-    public function testStartPayment(StartResponse $expected, string $responseBody, PaymentRequest $paymentRequest)
+    public function testStartPayment(PaymentResponse $expected, string $responseBody, PaymentRequest $paymentRequest)
     {
         $container = [];
         $history = Middleware::history($container);
@@ -95,6 +97,85 @@ class OtpSimplePayClientTest extends TestCase
         static::assertEquals(['sandbox.simplepay.hu'], $request->getHeader('Host'));
         static::assertEquals(
             'https://sandbox.simplepay.hu/payment/v2/start',
+            (string) $request->getUri()
+        );
+    }
+
+    public function casesStartRefund()
+    {
+        $refundRequest = new RefundRequest();
+
+        return [
+            'basic' => [
+                RefundResponse::__set_state([
+                    'salt' => 'bwivfsgm8aSmiSTyZ0FYILvu2wgO0NKe',
+                    'merchant' => 'test-merchant',
+                    'orderRef' => 'test-order-ref',
+                    'currency' => 'HUF',
+                    'transactionId' => 9999998,
+                    'refundTransactionId' => 99999999,
+                    'refundTotal' => 9255,
+                    'remainingTotal' => 0,
+                ]),
+                json_encode([
+                    'refundTransactionId' => 99999999,
+                    'salt' => 'bwivfsgm8aSmiSTyZ0FYILvu2wgO0NKe',
+                    'merchant' => 'test-merchant',
+                    'remainingTotal' => 0,
+                    'orderRef' => 'test-order-ref',
+                    'currency' => 'HUF',
+                    'transactionId' => 9999998,
+                    'refundTotal' => 9255,
+                    'sdkVersion' => 'SimplePay_PHP_SDK_2.0_180930:33ccd5ed8e8a965d18abfae333404184',
+                ]),
+                $refundRequest,
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider casesStartRefund
+     */
+    public function testStartRefund(RefundResponse $expected, string $responseBody, RefundRequest $refundRequest)
+    {
+        $container = [];
+        $history = Middleware::history($container);
+        $mock = new MockHandler([
+            new Response(
+                200,
+                [
+                    'Content-Type' => 'application/json;charset=UTF-8',
+                    'Signature' => 'mySignature',
+                ],
+                $responseBody
+            )]);
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($history);
+        $client = new Client([
+            'handler' => $handlerStack,
+        ]);
+        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $serializer */
+        $serializer = $this
+            ->getMockBuilder(Checksum::class)
+            ->getMock();
+        $serializer
+            ->expects($this->any())
+            ->method('calculate')
+            ->willReturn('mySignature');
+        $logger = new NullLogger();
+        $dateTime = new DateTime();
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+            ->setSecretKey('')
+            ->startRefund($refundRequest);
+        static::assertEquals($expected, $actual);
+        /** @var \GuzzleHttp\Psr7\Request $request */
+        $request = $container[0]['request'];
+        static::assertEquals(1, count($container));
+        static::assertEquals('POST', $request->getMethod());
+        static::assertEquals(['application/json'], $request->getHeader('Content-type'));
+        static::assertEquals(['sandbox.simplepay.hu'], $request->getHeader('Host'));
+        static::assertEquals(
+            'https://sandbox.simplepay.hu/payment/v2/refund',
             (string) $request->getUri()
         );
     }

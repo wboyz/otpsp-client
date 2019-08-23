@@ -96,14 +96,10 @@ class PaymentRequestTest extends RequestBaseTestBase
         return [
             'empty' => [
                 [
-                    'merchant' => '',
-                    'orderRef' => '',
                     'customer' => '',
                     'customerEmail' => '',
                     'language' => '',
-                    'currency' => '',
                     'total' => '',
-                    'salt' => '',
                     'methods' => ['CARD'],
                     'invoice' => [
                         'name' => '',
@@ -127,20 +123,20 @@ class PaymentRequestTest extends RequestBaseTestBase
                     'discount' => 0,
                     'timeout' => '',
                     'url' => '',
+                    'merchant' => '',
+                    'orderRef' => '',
+                    'salt' => '',
+                    'currency' => '',
                     'sdkVersion' => 'SimplePay_PHP_SDK_2.0_180930:33ccd5ed8e8a965d18abfae333404184',
                 ],
                 new PaymentRequest(),
             ],
             'basic' => [
                 [
-                    'merchant' => 'test-merchant',
-                    'orderRef' => 'test-order-ref',
                     'customer' => 'test-customer',
                     'customerEmail' => 'test-email@example.com',
                     'language' => 'HU',
-                    'currency' => 'HUF',
                     'total' => 100,
-                    'salt' => 'd471d2fb24c5a395563ff60f8ba769d1',
                     'methods' => ['CARD'],
                     'invoice' => [
                         'name' => 'InvoiceName',
@@ -192,6 +188,10 @@ class PaymentRequestTest extends RequestBaseTestBase
                         'cancel' => 'cancel-test.com',
                         'timeout' => 'timeout-test.com',
                     ],
+                    'merchant' => 'test-merchant',
+                    'orderRef' => 'test-order-ref',
+                    'salt' => 'd471d2fb24c5a395563ff60f8ba769d1',
+                    'currency' => 'HUF',
                     'sdkVersion' => 'SimplePay_PHP_SDK_2.0_180930:33ccd5ed8e8a965d18abfae333404184',
                 ],
                 $this->getBasePaymentRequest(),

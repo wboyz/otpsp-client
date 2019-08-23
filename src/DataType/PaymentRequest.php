@@ -42,16 +42,6 @@ class PaymentRequest extends RequestBase
     /**
      * @var string
      */
-    public $merchant = '';
-
-    /**
-     * @var string
-     */
-    public $orderRef = '';
-
-    /**
-     * @var string
-     */
     public $customer = '';
 
     /**
@@ -67,17 +57,7 @@ class PaymentRequest extends RequestBase
     /**
      * @var string
      */
-    public $currency = '';
-
-    /**
-     * @var string
-     */
     public $total = '';
-
-    /**
-     * @var string
-     */
-    public $salt = '';
 
     /**
      * @var string[]
@@ -124,10 +104,6 @@ class PaymentRequest extends RequestBase
      */
     public $urls;
 
-    /**
-     * @var string
-     */
-    public $sdkVersion = 'SimplePay_PHP_SDK_2.0_180930:33ccd5ed8e8a965d18abfae333404184';
 
     public function __construct()
     {

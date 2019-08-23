@@ -20,4 +20,29 @@ class ResponseBase
 
         return $instance;
     }
+
+    /**
+     * @var string
+     */
+    public $salt = '';
+
+    /**
+     * @var string
+     */
+    public $merchant = '';
+
+    /**
+     * @var string
+     */
+    public $orderRef = '';
+
+    /**
+     * @var string
+     */
+    public $currency = '';
+
+    /**
+     * @var int
+     */
+    public $transactionId = 0;
 }
