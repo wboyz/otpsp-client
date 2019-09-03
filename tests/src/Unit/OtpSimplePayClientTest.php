@@ -12,18 +12,23 @@ use Cheppers\OtpspClient\DataType\RefundResponse;
 use Cheppers\OtpspClient\OtpSimplePayClient;
 use DateTime;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Request;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Log\NullLogger;
 
+/**
+ * @covers \Cheppers\OtpspClient\OtpSimplePayClient<extended>
+ */
 class OtpSimplePayClientTest extends TestCase
 {
 
-    public function casesStartPayment()
+    public function casesStartPayment(): array
     {
         $paymentRequest = new PaymentRequest();
 
@@ -39,17 +44,19 @@ class OtpSimplePayClientTest extends TestCase
                     'total' => 9255,
                     'paymentUrl' => 'test-url.com'
                 ]),
-                json_encode([
-                    'salt' => 'bwivfsgm8aSmiSTyZ0FYILvu2wgO0NKe',
-                    'merchant' => 'test-merchant',
-                    'orderRef' => 'test-order-ref',
-                    'currency' => 'HUF',
-                    'transactionId' => 9999999,
-                    'timeout' => '2019-09-07T22:51:13+02:00',
-                    'total' => 9255,
-                    'paymentUrl' => 'test-url.com'
-                ]),
                 $paymentRequest,
+                [
+                    'body' => json_encode([
+                        'salt' => 'bwivfsgm8aSmiSTyZ0FYILvu2wgO0NKe',
+                        'merchant' => 'test-merchant',
+                        'orderRef' => 'test-order-ref',
+                        'currency' => 'HUF',
+                        'transactionId' => 9999999,
+                        'timeout' => '2019-09-07T22:51:13+02:00',
+                        'total' => 9255,
+                        'paymentUrl' => 'test-url.com'
+                    ]),
+                ],
             ]
         ];
     }
@@ -57,44 +64,23 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesStartPayment
      */
-    public function testStartPayment(PaymentResponse $expected, string $responseBody, PaymentRequest $paymentRequest)
-    {
+    public function testStartPayment(
+        PaymentResponse $expected,
+        PaymentRequest $paymentRequest,
+        array $responseData,
+        bool $checksumVerify = true
+    ) {
         $container = [];
-        $history = Middleware::history($container);
-        $mock = new MockHandler([
-            new Response(
-                200,
-                [
-                    'Content-Type' => 'application/json;charset=UTF-8',
-                    'Signature' => 'mySignature',
-                ],
-                $responseBody
-            )]);
-        $handlerStack = HandlerStack::create($mock);
-        $handlerStack->push($history);
-        $client = new Client([
-            'handler' => $handlerStack,
-        ]);
-        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $serializer */
-        $serializer = $this
-            ->getMockBuilder(Checksum::class)
-            ->getMock();
-        $serializer
-            ->expects($this->any())
-            ->method('calculate')
-            ->willReturn('mySignature');
-        $logger = new NullLogger();
-        $dateTime = new DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->setSecretKey('')
-            ->startPayment($paymentRequest);
-        static::assertEquals($expected, $actual);
-        /** @var \GuzzleHttp\Psr7\Request $request */
+        $otpClient = $this->createOptSimplePayClient($container, $responseData, $checksumVerify);
+        static::assertEquals($expected, $otpClient->startPayment($paymentRequest));
+
+        /** @var \Psr\Http\Message\RequestInterface $request */
         $request = $container[0]['request'];
         static::assertEquals(1, count($container));
         static::assertEquals('POST', $request->getMethod());
         static::assertEquals(['application/json'], $request->getHeader('Content-type'));
         static::assertEquals(['sandbox.simplepay.hu'], $request->getHeader('Host'));
+        static::assertEquals(json_encode($paymentRequest), $request->getBody()->getContents());
         static::assertEquals(
             'https://sandbox.simplepay.hu/payment/v2/start',
             (string) $request->getUri()
@@ -117,18 +103,20 @@ class OtpSimplePayClientTest extends TestCase
                     'refundTotal' => 9255,
                     'remainingTotal' => 0,
                 ]),
-                json_encode([
-                    'refundTransactionId' => 99999999,
-                    'salt' => 'bwivfsgm8aSmiSTyZ0FYILvu2wgO0NKe',
-                    'merchant' => 'test-merchant',
-                    'remainingTotal' => 0,
-                    'orderRef' => 'test-order-ref',
-                    'currency' => 'HUF',
-                    'transactionId' => 9999998,
-                    'refundTotal' => 9255,
-                    'sdkVersion' => 'SimplePay_PHP_SDK_2.0_180930:33ccd5ed8e8a965d18abfae333404184',
-                ]),
                 $refundRequest,
+                [
+                    'body' => json_encode([
+                        'refundTransactionId' => 99999999,
+                        'salt' => 'bwivfsgm8aSmiSTyZ0FYILvu2wgO0NKe',
+                        'merchant' => 'test-merchant',
+                        'remainingTotal' => 0,
+                        'orderRef' => 'test-order-ref',
+                        'currency' => 'HUF',
+                        'transactionId' => 9999998,
+                        'refundTotal' => 9255,
+                        'sdkVersion' => 'SimplePay_PHP_SDK_2.0_180930:33ccd5ed8e8a965d18abfae333404184',
+                    ]),
+                ],
             ]
         ];
     }
@@ -136,37 +124,16 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesStartRefund
      */
-    public function testStartRefund(RefundResponse $expected, string $responseBody, RefundRequest $refundRequest)
-    {
+    public function testStartRefund(
+        RefundResponse $expected,
+        RefundRequest $refundRequest,
+        array $responseData,
+        bool $checksumVerify = true
+    ) {
         $container = [];
-        $history = Middleware::history($container);
-        $mock = new MockHandler([
-            new Response(
-                200,
-                [
-                    'Content-Type' => 'application/json;charset=UTF-8',
-                    'Signature' => 'mySignature',
-                ],
-                $responseBody
-            )]);
-        $handlerStack = HandlerStack::create($mock);
-        $handlerStack->push($history);
-        $client = new Client([
-            'handler' => $handlerStack,
-        ]);
-        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $serializer */
-        $serializer = $this
-            ->getMockBuilder(Checksum::class)
-            ->getMock();
-        $serializer
-            ->expects($this->any())
-            ->method('calculate')
-            ->willReturn('mySignature');
-        $logger = new NullLogger();
-        $dateTime = new DateTime();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
-            ->setSecretKey('')
-            ->startRefund($refundRequest);
+        $otpClient = $this->createOptSimplePayClient($container, $responseData, $checksumVerify);
+        $actual = $otpClient->startRefund($refundRequest);
+
         static::assertEquals($expected, $actual);
         /** @var \GuzzleHttp\Psr7\Request $request */
         $request = $container[0]['request'];
@@ -174,6 +141,7 @@ class OtpSimplePayClientTest extends TestCase
         static::assertEquals('POST', $request->getMethod());
         static::assertEquals(['application/json'], $request->getHeader('Content-type'));
         static::assertEquals(['sandbox.simplepay.hu'], $request->getHeader('Host'));
+        static::assertEquals(json_encode($refundRequest), $request->getBody()->getContents());
         static::assertEquals(
             'https://sandbox.simplepay.hu/payment/v2/refund',
             (string) $request->getUri()
@@ -211,9 +179,8 @@ class OtpSimplePayClientTest extends TestCase
     {
         $logger = new NullLogger();
         $serializer = new Checksum();
-        $dateTime = new DateTime();
         $client = new Client();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        $actual = (new OtpSimplePayClient($client, $serializer, $logger))
             ->setSecretKey('')
             ->parseBackResponse($url);
         static::assertEquals($expected, $actual);
@@ -263,12 +230,60 @@ class OtpSimplePayClientTest extends TestCase
     public function testParseInstantPaymentNotificationRequest(InstantPaymentNotification $expected, Request $request)
     {
         $logger = new NullLogger();
-        $serializer = new Checksum();
-        $dateTime = new DateTime();
+        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $checksum */
+        $checksum = $this
+            ->getMockBuilder(Checksum::class)
+            ->getMock();
+        $checksum
+            ->expects($this->any())
+            ->method('verify')
+            ->willReturn(true);
         $client = new Client();
-        $actual = (new OtpSimplePayClient($client, $serializer, $logger, $dateTime))
+        $actual = (new OtpSimplePayClient($client, $checksum, $logger))
             ->setSecretKey('')
             ->parseInstantPaymentNotificationRequest($request);
         static::assertEquals($expected, $actual);
+    }
+
+    protected function createOptSimplePayClient(
+        array &$requestContainer,
+        array $responseData,
+        $checksumVerify = true
+    ): OtpSimplePayClient {
+        $responseData = array_replace_recursive(
+            [
+                'status' => 200,
+                'headers' => [
+                    'Content-Type' => 'application/json;charset=UTF-8',
+                    'Signature' => 'mySignature',
+                ],
+                'body' => '',
+            ],
+            $responseData
+        );
+        $responseData['headers'] = array_filter($responseData['headers']);
+
+        $history = Middleware::history($requestContainer);
+        $mock = new MockHandler([
+            new Response(...array_values($responseData)),
+            new RequestException('Error Communicating with Server', new Request('GET', 'ping'))
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($history);
+        $client = new Client([
+            'handler' => $handlerStack,
+        ]);
+
+        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $checksum */
+        $checksum = $this
+            ->getMockBuilder(Checksum::class)
+            ->getMock();
+        $checksum
+            ->expects($this->any())
+            ->method('verify')
+            ->willReturn($checksumVerify);
+        $logger = new NullLogger();
+
+        return new OtpSimplePayClient($client, $checksum, $logger);
     }
 }

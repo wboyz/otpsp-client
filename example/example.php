@@ -1,24 +1,27 @@
 <?php
 
+use Cheppers\OtpspClient\Checksum;
+use Cheppers\OtpspClient\DataType\PaymentRequest;
+use Cheppers\OtpspClient\OtpSimplePayClient;
 use GuzzleHttp\Psr7\Request;
+use Psr\Log\Test\TestLogger;
 
 require_once 'vendor/autoload.php';
 
+$secretKey = getenv('SECRET_KEY');
+$merchantId = getenv('MERCHANT_ID');
 
-// Create instance from OtpSimplePayClient and set secret key
 $guzzle = new \GuzzleHttp\Client();
-$serializer = new \Cheppers\OtpspClient\Checksum();
-$logger = new \Psr\Log\Test\TestLogger();
-$datetime = new DateTime();
-$client = new \Cheppers\OtpspClient\OtpSimplePayClient($guzzle, $serializer, $logger, $datetime);
+$serializer = new Checksum();
+$logger = new TestLogger();
+$otpSimple = new OtpSimplePayClient($guzzle, $serializer, $logger);
+$otpSimple->setSecretKey($secretKey);
 
-$client->setSecretKey('');
+$now = new \DateTime('now');
 
-
-// Starting payment
 $valuesPayment = [
-    'merchant' => '',
-    'orderRef' => 'order-id-1',
+    'merchant' => $merchantId,
+    'orderRef' => 'order-id-' . $now->format('Y-m-d-h-i-s'),
     'customer' => 'test-customer',
     'customerEmail' => 'test-email@example.com',
     'language' => 'HU',
@@ -72,30 +75,34 @@ $valuesPayment = [
     'url' => 'http://81b077c9.ngrok.io/en/dummy-controller',
 ];
 
-$client->startPayment(\Cheppers\OtpspClient\DataType\PaymentRequest::__set_state($valuesPayment));
-
+$response = $otpSimple->startPayment(PaymentRequest::__set_state($valuesPayment));
+var_dump($response);
 
 // Get IPN request from SimplePay, you should parse and reply.
 // Example request from SimplePay
+$body = json_encode([
+    'salt' => 'test-salt',
+    'orderRef' => $valuesPayment['orderRef'],
+    'method' => 'test-card',
+    'merchant' => $merchantId,
+    'finishDate' => 'test-finishDate',
+    'paymentDate' => 'test-paymentDate',
+    'transactionId' => 42,
+    'status' => 'test-status',
+]);
 $request = new Request(
     'POST',
     'test-uri.com',
     [
         'Content-Type' => 'application/json',
-        'Signature' => 'jRLcA9EYhm+xjfyXCJ9ft/OUuhgtRR5Ct2IQYCXAlTGtubvn7kBsBmp/5K2Ex',
+        'Signature' => $serializer->calculate($secretKey, $body),
     ],
-    json_encode([
-        'salt' => 'test-salt',
-        'orderRef' => 'test-orderRef',
-        'method' => 'test-card',
-        'merchant' => 'test-merchant',
-        'finishDate' => 'test-finishDate',
-        'paymentDate' => 'test-paymentDate',
-        'transactionId' => 42,
-        'status' => 'test-status',
-    ]));
+    $body
+);
 
-$ipn = $client->parseInstantPaymentNotificationRequest($request);
+$ipn = $otpSimple->parseInstantPaymentNotificationRequest($request);
+var_dump($ipn);
 
-// Success response for Instant Payment Notification
-$client->getInstantPaymentNotificationSuccessResponse($ipn);
+// Success response for Instant Payment Notification.
+$responseToSendBackToOtp = $otpSimple->getInstantPaymentNotificationSuccessResponse($ipn);
+var_dump($responseToSendBackToOtp);

@@ -17,6 +17,9 @@ class RefundRequest extends RequestBase
      */
     public $refundTotal = 0.0;
 
+    /**
+     * {@inheritdoc}
+     */
     public function jsonSerialize()
     {
         $data = [];

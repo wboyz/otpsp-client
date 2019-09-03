@@ -51,6 +51,9 @@ class Address extends Base
      */
     public $phone = '';
 
+    /**
+     * {@inheritdoc}
+     */
     protected $requiredFields = [
         'name',
         'city',

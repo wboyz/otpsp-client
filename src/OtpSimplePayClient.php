@@ -11,10 +11,11 @@ use Cheppers\OtpspClient\DataType\RefundRequest;
 use Cheppers\OtpspClient\DataType\RefundResponse;
 use Cheppers\OtpspClient\DataType\RequestBase;
 use Cheppers\OtpspClient\DataType\PaymentResponse;
-use DateTimeInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use Psr\Http\Message\MessageInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -23,11 +24,6 @@ use Psr\Log\LoggerInterface;
 class OtpSimplePayClient implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
-
-    /**
-     * @var \Cheppers\OtpspClient\Checksum
-     */
-    protected $checksum;
 
     /**
      * @var string
@@ -55,7 +51,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
     /**
      * @var \GuzzleHttp\ClientInterface
      */
-    protected $client = null;
+    protected $client;
 
     public function getClient(): ClientInterface
     {
@@ -73,21 +69,41 @@ class OtpSimplePayClient implements LoggerAwareInterface
     }
 
     /**
-     * @var \DateTimeInterface
+     * @var \Cheppers\OtpspClient\ChecksumInterface
      */
-    protected $dateTime;
+    protected $checksum;
 
-    public function getDateTime(): DateTimeInterface
+    public function getChecksum(): ChecksumInterface
     {
-        return $this->dateTime;
+        return $this->checksum;
     }
 
     /**
      * @return $this
      */
-    public function setDateTime(DateTimeInterface $dateTime)
+    public function setChecksum(ChecksumInterface $checksum)
     {
-        $this->dateTime = $dateTime;
+        $this->checksum = $checksum;
+
+        return $this;
+    }
+
+    /**
+     * @var string
+     */
+    protected $dateTimeClass = \DateTime::class;
+
+    public function getDateTimeClass(): string
+    {
+        return $this->dateTimeClass;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setDateTimeClass(string $dateTimeClass)
+    {
+        $this->dateTimeClass = $dateTimeClass;
 
         return $this;
     }
@@ -138,80 +154,43 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     public function __construct(
         ClientInterface $client,
-        Checksum $serializer,
-        LoggerInterface $logger,
-        DateTimeInterface $dateTime
+        ChecksumInterface $checksumCalculator,
+        LoggerInterface $logger
     ) {
-        $this->client = $client;
-        $this->checksum = $serializer;
-        $this->setLogger($logger);
-        $this->dateTime = $dateTime;
+        $this
+            ->setClient($client)
+            ->setChecksum($checksumCalculator)
+            ->setLogger($logger);
     }
 
     /**
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Exception
      */
-    public function startPayment(PaymentRequest $paymentRequest): ?PaymentResponse
+    public function startPayment(PaymentRequest $paymentRequest): PaymentResponse
     {
-        $response = $this->createRequest($paymentRequest, 'start');
-        $signature = $response->getHeader('signature')[0];
-        $message = $response->getBody()->getContents();
+        $response = $this->sendRequest($paymentRequest, 'start');
+        $body = $this->getMessageBody($response);
 
-        if ($signature === []
-            || $message === ''
-            || $response->getHeader('Content-Type')[0] !== 'application/json;charset=UTF-8'
-        ) {
-            throw new \Exception('Starting payment failed', 1);
-        }
-
-        if (!$this->isValidChecksum($signature, $message)) {
-            throw new \Exception('Invalid response', 1);
-        }
-
-        $data = json_decode($message, true);
-
-        if ($data === false) {
-            throw new \Exception('Invalid json response', 1);
-        }
-
-        return PaymentResponse::__set_state($data);
+        return PaymentResponse::__set_state($body);
     }
 
     /**
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Exception
      */
-    public function startRefund(RefundRequest $refundRequest): ?RefundResponse
+    public function startRefund(RefundRequest $refundRequest): RefundResponse
     {
-        $response = $this->createRequest($refundRequest, 'refund');
-        $signature = $response->getHeader('signature')[0];
-        $message = $response->getBody()->getContents();
+        $response = $this->sendRequest($refundRequest, 'refund');
+        $body = $this->getMessageBody($response);
 
-        if ($signature === []
-            || $message === ''
-            || $response->getHeader('Content-Type')[0] !== 'application/json;charset=UTF-8'
-        ) {
-            throw new \Exception('Refund payment failed', 1);
-        }
-
-        if (!$this->isValidChecksum($signature, $message)) {
-            throw new \Exception('Invalid response', 1);
-        }
-
-        $data = json_decode($message, true);
-
-        if ($data === false) {
-            throw new \Exception('Invalid json response', 1);
-        }
-
-        return RefundResponse::__set_state($data);
+        return RefundResponse::__set_state($body);
     }
 
     /**
      * @throws \Exception
      */
-    public function parseBackResponse(string $url): ?BackResponse
+    public function parseBackResponse(string $url): BackResponse
     {
         $values = Utils::getQueryFromUrl($url);
 
@@ -221,46 +200,44 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
         $responseMessage = base64_decode($values['r']);
 
-        if (!$this->isValidChecksum($values['s'], $responseMessage)) {
+        if (!$this->getChecksum()->verify($this->getSecretKey(), $responseMessage, $values['s'])) {
             throw new \Exception('Invalid response');
         }
 
-        return BackResponse::__set_state(json_decode($responseMessage, true));
+        $body = json_decode($responseMessage, true);
+        if (!is_array($body)) {
+            throw new \Exception('Response body is not a valid JSON', 4);
+        }
+
+        return BackResponse::__set_state($body);
     }
 
     /**
      * @throws \Exception
      */
-    public function parseInstantPaymentNotificationRequest(Request $request): ?InstantPaymentNotification
+    public function parseInstantPaymentNotificationRequest(RequestInterface $request): ?InstantPaymentNotification
     {
-        $signature = $request->getHeader('Signature')[0];
-        $message = $request->getBody()->getContents();
+        $body = $this->getMessageBody($request);
 
-        if (!$signature || !$message || !$this->isValidChecksum($signature, $message)) {
-            throw new \Exception('Invalid response', 1);
-        }
-
-        $data = json_decode($message, true);
-
-        if ($data === false || $data === null) {
-            throw new \Exception('Invalid json string', 1);
-        }
-
-        return InstantPaymentNotification::__set_state($data);
+        return InstantPaymentNotification::__set_state($body);
     }
 
     public function getInstantPaymentNotificationSuccessResponse(
         InstantPaymentNotification $instantPaymentNotification
     ): ResponseInterface {
-        $instantPaymentNotification->receiveDate = (new \DateTime('now'))->format('Y-m-d\TH:i:sP');
+        if (empty($instantPaymentNotification->receiveDate)) {
+            /** @var \DateTimeInterface $now */
+            $now = new $this->dateTimeClass('now');
+            $instantPaymentNotification->receiveDate = $now->format('Y-m-d\TH:i:sP');
+        }
 
         $message = json_encode($instantPaymentNotification);
-        print_r($message);
+
         return new Response(
             200,
             [
                 'Content-Type' => 'application/json',
-                'Signature' => $this->checksum->calculate($message, $this->secretKey),
+                'Signature' => $this->getChecksum()->calculate($this->secretKey, $message),
             ],
             $message
         );
@@ -272,29 +249,49 @@ class OtpSimplePayClient implements LoggerAwareInterface
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function isValidChecksum(string $expectedHash, string $values): bool
-    {
-        $actualHash = $this
-            ->checksum
-            ->calculate($values, $this->getSecretKey());
-
-        return $expectedHash === $actualHash;
-    }
-
-    /**
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function createRequest(RequestBase $requestType, string $path): ResponseInterface
+    public function sendRequest(RequestBase $requestType, string $path): ResponseInterface
     {
         $requestMessage = json_encode($requestType->jsonSerialize());
 
         $header = [
             'Content-type' => 'application/json',
-            'Signature' => $this->checksum->calculate($requestMessage, $this->secretKey),
+            'Signature' => $this->getChecksum()->calculate($this->secretKey, $requestMessage),
         ];
 
         return $this->client->send(new Request('POST', $this->getUri($path), $header, $requestMessage));
+    }
+
+    protected function getMessageBody(MessageInterface $message): array
+    {
+        if (!$message->hasHeader('Content-Type')) {
+            throw new \Exception('Missing header Content-Type', 1);
+        }
+
+        $allowedContentTypes = [
+            'application/json;charset=UTF-8',
+            'application/json',
+        ];
+        if (!array_intersect($allowedContentTypes, $message->getHeader('Content-Type'))) {
+            throw new \Exception('Not allowed Content-Type', 2);
+        }
+
+        if (!$message->hasHeader('signature')) {
+            throw new \Exception('Response has no signature', 3);
+        }
+
+        $signature = $message->getHeader('signature')[0];
+        $bodyContent = $message->getBody()->getContents();
+        if (!$this->getChecksum()->verify($this->getSecretKey(), $bodyContent, $signature)) {
+            throw new \Exception('Response checksum mismatch', 4);
+        }
+
+        $body = json_decode($bodyContent, true);
+        if (!is_array($body)) {
+            throw new \Exception('Response body is not a valid JSON', 5);
+        }
+
+        return $body;
     }
 }

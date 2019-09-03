@@ -7,14 +7,14 @@ namespace Cheppers\OtpspClient;
 class Utils
 {
 
-    public static function getQueryFromUrl(string $url)
+    public static function getQueryFromUrl(string $url): array
     {
         $query = parse_url($url, PHP_URL_QUERY);
         if (!$query) {
             return null;
         }
 
-        $values =[];
+        $values = [];
         parse_str($query, $values);
 
         return $values;

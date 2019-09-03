@@ -8,7 +8,7 @@ use Cheppers\OtpspClient\UrlParser;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \Cheppers\OtpspClient\UrlParser
+ * @covers \Cheppers\OtpspClient\UrlParser<extended>
  */
 class UrlParserTest extends TestCase
 {

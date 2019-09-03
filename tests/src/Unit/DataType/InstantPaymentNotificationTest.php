@@ -3,8 +3,10 @@
 namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
-use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \Cheppers\OtpspClient\DataType\InstantPaymentNotification<extended>
+ */
 class InstantPaymentNotificationTest extends ResponseBaseTestBase
 {
     /**

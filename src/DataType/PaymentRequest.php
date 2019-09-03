@@ -7,6 +7,9 @@ namespace Cheppers\OtpspClient\DataType;
 class PaymentRequest extends RequestBase
 {
 
+    /**
+     * {@inheritdoc}
+     */
     public static function __set_state($values)
     {
         $instance = new static();
@@ -104,7 +107,6 @@ class PaymentRequest extends RequestBase
      */
     public $urls;
 
-
     public function __construct()
     {
         $this->invoice = new Address();
@@ -119,57 +121,34 @@ class PaymentRequest extends RequestBase
     {
         $data = [];
 
-        foreach (array_keys(get_object_vars($this)) as $key) {
+        foreach (get_object_vars($this) as $key => $value) {
             switch ($key) {
                 case 'merchant':
-                    $data['merchant'] = $this->merchant;
-                    break;
                 case 'orderRef':
-                    $data['orderRef'] = $this->orderRef;
-                    break;
                 case 'customer':
-                    $data['customer'] = $this->customer;
-                    break;
                 case 'customerEmail':
-                    $data['customerEmail'] = $this->customerEmail;
-                    break;
                 case 'language':
-                    $data['language'] = $this->language;
-                    break;
                 case 'currency':
-                    $data['currency'] = $this->currency;
-                    break;
                 case 'total':
-                    $data['total'] = $this->total;
-                    break;
                 case 'salt':
-                    $data['salt'] = $this->salt;
-                    break;
                 case 'methods':
-                    $data['methods'] = $this->methods;
+                case 'shippingCost':
+                case 'discount':
+                case 'timeout':
+                case 'url':
+                case 'sdkVersion':
+                    $data[$key] = $value;
                     break;
                 case 'invoice':
-                    $data['invoice'] = $this->invoice->exportData();
+                    $data[$key] = $this->invoice->exportData();
                     break;
                 case 'delivery':
-                    $data['delivery'] = $this->delivery->exportData();
+                    $data[$key] = $this->delivery->exportData();
                     break;
                 case 'items':
                     foreach ($this->items as $item) {
-                        $data['items'][] = $item->exportData();
+                        $data[$key][] = $item->exportData();
                     }
-                    break;
-                case 'shippingCost':
-                    $data['shippingCost'] = $this->shippingCost;
-                    break;
-                case 'discount':
-                    $data['discount'] = $this->discount;
-                    break;
-                case 'timeout':
-                    $data['timeout'] = $this->timeout;
-                    break;
-                case 'url':
-                    $data['url'] = $this->url;
                     break;
                 case 'urls':
                     if ($this->urls->success === ''
@@ -179,10 +158,7 @@ class PaymentRequest extends RequestBase
                     ) {
                         break;
                     }
-                    $data['urls'] = $this->urls->exportData();
-                    break;
-                case 'sdkVersion':
-                    $data['sdkVersion'] = $this->sdkVersion;
+                    $data[$key] = $this->urls->exportData();
                     break;
             }
         }
