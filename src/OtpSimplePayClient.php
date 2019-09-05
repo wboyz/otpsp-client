@@ -194,7 +194,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
     {
         $values = Utils::getQueryFromUrl($url);
 
-        if (!$values['r'] || !$values['s']) {
+        if (!array_key_exists('r', $values) || !array_key_exists('s', $values)) {
             throw new \Exception('Invalid response');
         }
 
@@ -206,7 +206,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
         $body = json_decode($responseMessage, true);
         if (!is_array($body)) {
-            throw new \Exception('Response body is not a valid JSON', 4);
+            throw new \Exception('Response message is not a valid JSON', 4);
         }
 
         return BackResponse::__set_state($body);

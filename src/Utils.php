@@ -11,7 +11,7 @@ class Utils
     {
         $query = parse_url($url, PHP_URL_QUERY);
         if (!$query) {
-            return null;
+            return [];
         }
 
         $values = [];

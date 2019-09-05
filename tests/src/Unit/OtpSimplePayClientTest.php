@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Cheppers\OtpspClient\Tests\Unit;
 
 use Cheppers\OtpspClient\Checksum;
@@ -184,6 +186,37 @@ class OtpSimplePayClientTest extends TestCase
             ->setSecretKey('')
             ->parseBackResponse($url);
         static::assertEquals($expected, $actual);
+    }
+
+    public function casesParseBackResponseFailed()
+    {
+        return [
+            'r and s variable not exist' => [
+                new \Exception('Invalid response'),
+                'http://test.io/en/?t=test&f=failed',
+            ],
+            'invalid signature' => [
+                new \Exception('Invalid response'),
+                'http://test.io/en/?r=response-body&s=signature',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesParseBackResponseFailed
+     *
+     * @throws \Exception
+     */
+    public function testParseBackResponseFailed(\Exception $expected, string $url)
+    {
+        $logger = new NullLogger();
+        $serializer = new Checksum();
+        $client = new Client();
+
+        static::expectExceptionObject($expected);
+        (new OtpSimplePayClient($client, $serializer, $logger))
+            ->setSecretKey('')
+            ->parseBackResponse($url);
     }
 
     public function casesParseInstantPaymentNotificationRequest()

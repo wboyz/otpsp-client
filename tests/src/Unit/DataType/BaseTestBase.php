@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 
 use Cheppers\OtpspClient\DataType\Base;

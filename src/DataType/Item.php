@@ -34,5 +34,5 @@ class Item extends Base
     /**
      * @var int
      */
-    public $tax = '0';
+    public $tax = 0;
 }
