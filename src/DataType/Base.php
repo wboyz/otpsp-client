@@ -20,34 +20,13 @@ class Base
         return $instance;
     }
 
-    /**
-     * Internal name of the required fields.
-     *
-     * @var string[]
-     */
-    protected $requiredFields = [];
-
-    public function isEmpty(): bool
-    {
-        foreach ($this->requiredFields as $requiredField) {
-            if (!isset($this->{$requiredField})) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public function exportData(): array
     {
-        if ($this->isEmpty()) {
-            return [];
-        }
 
         $data = [];
         foreach (array_keys(get_object_vars($this)) as $key) {
             $value =  $this->{$key};
-            if ((!in_array($key, $this->requiredFields) && !$value) || $key === 'requiredFields') {
+            if (!isset($value)) {
                 continue;
             }
 

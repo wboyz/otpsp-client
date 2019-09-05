@@ -14,7 +14,7 @@ class Address extends Base
     /**
      * @var string
      */
-    public $company = '';
+    public $company;
 
     /**
      * @var string
@@ -49,18 +49,5 @@ class Address extends Base
     /**
      * @var string
      */
-    public $phone = '';
-
-    /**
-     * {@inheritdoc}
-     */
-    protected $requiredFields = [
-        'name',
-        'city',
-        'country',
-        'address',
-        'address2',
-        'zip',
-        'state',
-    ];
+    public $phone;
 }

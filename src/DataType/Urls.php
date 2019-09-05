@@ -25,6 +25,4 @@ class Urls extends Base
      * @var string
      */
     public $timeout = '';
-
-    protected $requiredFields = [];
 }

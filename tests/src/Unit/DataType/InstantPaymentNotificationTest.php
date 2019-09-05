@@ -35,6 +35,7 @@ class InstantPaymentNotificationTest extends ResponseBaseTestBase
                     'receiveDate'   => '2019-09-03T00:12:42+02:00',
                 ],
             ],
+            'non existing property' => [new InstantPaymentNotification(), ['bad_porperty' => 'value']]
         ];
     }
 

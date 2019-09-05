@@ -35,13 +35,4 @@ class Item extends Base
      * @var int
      */
     public $tax = '0';
-
-    /**
-     * {@inheritdoc}
-     */
-    protected $requiredFields = [
-        'title',
-        'price',
-        'amount',
-    ];
 }
