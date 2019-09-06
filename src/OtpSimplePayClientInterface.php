@@ -4,25 +4,19 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient;
 
-use Cheppers\OtpspClient\DataType\BackRef;
-use Cheppers\OtpspClient\DataType\InstantDeliveryNotification;
-use Cheppers\OtpspClient\DataType\InstantOrderStatus;
+use Cheppers\OtpspClient\DataType\BackResponse;
+use Cheppers\OtpspClient\DataType\PaymentRequest;
+use Cheppers\OtpspClient\DataType\PaymentResponse;
 use Cheppers\OtpspClient\DataType\RefundRequest;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
-use DateTimeInterface;
+use Cheppers\OtpspClient\DataType\RefundResponse;
+use Cheppers\OtpspClient\DataType\RequestBase;
 use GuzzleHttp\ClientInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 interface OtpSimplePayClientInterface
 {
-    const RETURN_CODE_SUCCESS = '000';
-
-    const RETURN_CODE_SUCCESS_1 = '001';
-
-    const STATUS_CODE_SUCCESS = 1;
-
-    const STATUS_CODE_NOT_FOUND = 5011;
-
-    const CONTROL_KEY = 'ctrl';
 
     public function getBaseUri(): string;
 
@@ -38,19 +32,19 @@ interface OtpSimplePayClientInterface
      */
     public function setClient(ClientInterface $client);
 
-    public function getDateTime(): DateTimeInterface;
+    public function getChecksum(): ChecksumInterface;
 
     /**
      * @return $this
      */
-    public function setDateTime(DateTimeInterface $dateTime);
+    public function setChecksum(ChecksumInterface $checksum);
 
-    public function getMerchantId(): string;
+    public function getDateTimeClass(): string;
 
     /**
      * @return $this
      */
-    public function setMerchantId(string $merchantId);
+    public function setDateTimeClass(string $dateTimeClass);
 
     public function getSecretKey(): string;
 
@@ -64,59 +58,17 @@ interface OtpSimplePayClientInterface
      */
     public function getSupportedLanguages(): array;
 
-    public function instantDeliveryNotificationPost(
-        string $orderRef,
-        string $orderAmount,
-        string $orderCurrency
-    ): ?InstantDeliveryNotification;
+    public function startPayment(PaymentRequest $paymentRequest): PaymentResponse;
 
-    public function instantRefundNotificationPost(
-        string $orderRef,
-        string $orderAmount,
-        string $orderCurrency,
-        string $refundAmount
-    ): ?RefundRequest;
+    public function startRefund(RefundRequest $refundRequest): RefundResponse;
 
-    public function instantOrderStatusPost(string $refNoExt): ?InstantOrderStatus;
+    public function parseBackResponse(string $url): BackResponse;
 
-    public function parseResponseXml(string $xml): array;
+    public function parseInstantPaymentNotificationRequest(RequestInterface $request): ?InstantPaymentNotification;
 
-    /**
-     * @return string[]
-     */
-    public function parseResponseString(string $xml, string $dateKey): array;
+    public function getInstantPaymentNotificationSuccessResponse(
+        InstantPaymentNotification $instantPaymentNotification
+    ): ResponseInterface;
 
-    public function getLiveUpdateUrl(): string;
-
-    public function isValidChecksum(string $expectedHash, array $values): bool;
-
-    public function getInstantPaymentNotificationSuccessResponse(InstantPaymentNotification $ipn): array;
-
-    public function getInstantPaymentNotificationFailedResponse(): array;
-
-    /**
-     * @return string[]
-     */
-    public function getSuccessReturnCodes(): array;
-
-    public function isPaymentSuccess(string $returnCode): bool;
-
-    /**
-     * @return $this
-     */
-    public function validateStatusCode(array $values);
-
-    /**
-     * @return $this
-     */
-    public function validateHash(string $hash, array $values);
-
-    /**
-     * @return $this
-     */
-    public function validateResponseStatusCode(int $statusCode);
-
-    public function parseBackRefRequest(string $url): BackRef;
-
-    public function parseInstantPaymentNotificationRequest(string $body): InstantPaymentNotification;
+    public function sendRequest(RequestBase $requestType, string $path): ResponseInterface;
 }

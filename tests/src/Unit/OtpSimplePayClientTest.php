@@ -12,7 +12,8 @@ use Cheppers\OtpspClient\DataType\PaymentResponse;
 use Cheppers\OtpspClient\DataType\RefundRequest;
 use Cheppers\OtpspClient\DataType\RefundResponse;
 use Cheppers\OtpspClient\OtpSimplePayClient;
-use DateTime;
+use Cheppers\OtpspClient\Tests\Helper\CustomDateTime;
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
@@ -21,7 +22,6 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Request;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Log\NullLogger;
 
 /**
@@ -65,6 +65,8 @@ class OtpSimplePayClientTest extends TestCase
 
     /**
      * @dataProvider casesStartPayment
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function testStartPayment(
         PaymentResponse $expected,
@@ -125,6 +127,8 @@ class OtpSimplePayClientTest extends TestCase
 
     /**
      * @dataProvider casesStartRefund
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function testStartRefund(
         RefundResponse $expected,
@@ -175,7 +179,7 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesParseBackResponse
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testParseBackResponse(BackResponse $expected, string $url)
     {
@@ -192,12 +196,20 @@ class OtpSimplePayClientTest extends TestCase
     {
         return [
             'r and s variable not exist' => [
-                new \Exception('Invalid response'),
+                new Exception('Invalid response'),
                 'http://test.io/en/?t=test&f=failed',
             ],
             'invalid signature' => [
-                new \Exception('Invalid response'),
+                new Exception('Invalid response'),
                 'http://test.io/en/?r=response-body&s=signature',
+            ],
+            'invalid response' => [
+                new Exception('Response message is not a valid JSON', 4),
+                implode('', [
+                    'http://test.io/en/?',
+                    'r=dGVzdC1tZXNzYWdl&',
+                    's=2KpxBOqk5HmIHQLBbKDYbkC9nQnjhK3EBmGqtjyKF4lccLiIxknVz/RJpW2IgjGf',
+                ]),
             ],
         ];
     }
@@ -205,9 +217,9 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesParseBackResponseFailed
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function testParseBackResponseFailed(\Exception $expected, string $url)
+    public function testParseBackResponseFailed(Exception $expected, string $url)
     {
         $logger = new NullLogger();
         $serializer = new Checksum();
@@ -276,6 +288,64 @@ class OtpSimplePayClientTest extends TestCase
             ->setSecretKey('')
             ->parseInstantPaymentNotificationRequest($request);
         static::assertEquals($expected, $actual);
+    }
+
+    public function casesGetInstantPaymentNotificationSuccessResponse(): array
+    {
+        $ipn = new InstantPaymentNotification();
+        $ipn->salt = 'test-salt';
+        $ipn->orderRef = 'test-order-ref';
+        $ipn->method = 'CARD';
+        $ipn->merchant = 'test-merchant';
+        $ipn->finishDate = '2019-09-01T00:12:42+02:00';
+        $ipn->paymentDate = '2019-09-02T00:12:42+02:00';
+        $ipn->transactionId = 42;
+        $ipn->status = 'FINISHED';
+
+        return [
+            'basic' => [
+                new Response(
+                    200,
+                    [
+                        'Content-Type' => 'application/json',
+                        'Signature' => '469yavaC3GOVWHKbyIAA35iL8yXTj4zlEhVZqmMPye/i72u1Mq05LcvFr3EgGP0I',
+                    ],
+                    json_encode([
+                        'method'        => 'CARD',
+                        'finishDate'    => '2019-09-01T00:12:42+02:00',
+                        'paymentDate'   => '2019-09-02T00:12:42+02:00',
+                        'status'        => 'FINISHED',
+                        'receiveDate'   => '2019-09-03T00:12:42+02:00',
+                        'salt'          => 'test-salt',
+                        'merchant'      => 'test-merchant',
+                        'orderRef'      => 'test-order-ref',
+                        'transactionId' => 42,
+                    ])
+                ),
+                $ipn,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesGetInstantPaymentNotificationSuccessResponse
+     */
+    public function testGetInstantPaymentNotificationSuccessResponse(
+        Response $expected,
+        InstantPaymentNotification $ipn
+    ): void {
+        $guzzle = new Client();
+        $checksum = new Checksum();
+        $logger = new NullLogger();
+        $otpClient = new OtpSimplePayClient($guzzle, $checksum, $logger);
+        $otpClient
+            ->setSecretKey('')
+            ->setDateTimeClass(CustomDateTime::class);
+        $response = $otpClient->getInstantPaymentNotificationSuccessResponse($ipn);
+
+        static::assertSame($expected->getStatusCode(), $response->getStatusCode());
+        static::assertSame($expected->getHeaders(), $response->getHeaders());
+        static::assertSame($expected->getBody()->getContents(), $response->getBody()->getContents());
     }
 
     protected function createOptSimplePayClient(

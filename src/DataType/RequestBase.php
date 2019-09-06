@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
-abstract class RequestBase implements \JsonSerializable
+use JsonSerializable;
+
+abstract class RequestBase implements JsonSerializable
 {
 
     public static function __set_state($values)

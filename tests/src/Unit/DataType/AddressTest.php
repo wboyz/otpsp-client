@@ -5,8 +5,6 @@ declare(strict_types = 1);
 namespace Cheppers\OtpspClient\Tests\Unit\DataType;
 
 use Cheppers\OtpspClient\DataType\Address;
-use PHPUnit\Framework\TestCase;
-use function Sodium\add;
 
 /**
  * @covers \Cheppers\OtpspClient\DataType\Address<extended>

@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
-class InstantPaymentNotification extends ResponseBase implements \JsonSerializable
+use JsonSerializable;
+
+class InstantPaymentNotification extends ResponseBase implements JsonSerializable
 {
 
     /**

@@ -11,6 +11,8 @@ use Cheppers\OtpspClient\DataType\RefundRequest;
 use Cheppers\OtpspClient\DataType\RefundResponse;
 use Cheppers\OtpspClient\DataType\RequestBase;
 use Cheppers\OtpspClient\DataType\PaymentResponse;
+use DateTime;
+use Exception;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
@@ -21,7 +23,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 
-class OtpSimplePayClient implements LoggerAwareInterface
+class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
@@ -91,7 +93,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
     /**
      * @var string
      */
-    protected $dateTimeClass = \DateTime::class;
+    protected $dateTimeClass = DateTime::class;
 
     public function getDateTimeClass(): string
     {
@@ -165,7 +167,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     /**
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Exception
+     * @throws Exception
      */
     public function startPayment(PaymentRequest $paymentRequest): PaymentResponse
     {
@@ -177,7 +179,7 @@ class OtpSimplePayClient implements LoggerAwareInterface
 
     /**
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Exception
+     * @throws Exception
      */
     public function startRefund(RefundRequest $refundRequest): RefundResponse
     {
@@ -188,32 +190,32 @@ class OtpSimplePayClient implements LoggerAwareInterface
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function parseBackResponse(string $url): BackResponse
     {
         $values = Utils::getQueryFromUrl($url);
 
         if (!array_key_exists('r', $values) || !array_key_exists('s', $values)) {
-            throw new \Exception('Invalid response');
+            throw new Exception('Invalid response');
         }
 
         $responseMessage = base64_decode($values['r']);
 
         if (!$this->getChecksum()->verify($this->getSecretKey(), $responseMessage, $values['s'])) {
-            throw new \Exception('Invalid response');
+            throw new Exception('Invalid response');
         }
 
         $body = json_decode($responseMessage, true);
         if (!is_array($body)) {
-            throw new \Exception('Response message is not a valid JSON', 4);
+            throw new Exception('Response message is not a valid JSON', 4);
         }
 
         return BackResponse::__set_state($body);
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function parseInstantPaymentNotificationRequest(RequestInterface $request): ?InstantPaymentNotification
     {
@@ -243,11 +245,6 @@ class OtpSimplePayClient implements LoggerAwareInterface
         );
     }
 
-    protected function getUri(string $path): string
-    {
-        return $this->getBaseUri() . "/$path";
-    }
-
     /**
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
@@ -263,10 +260,18 @@ class OtpSimplePayClient implements LoggerAwareInterface
         return $this->client->send(new Request('POST', $this->getUri($path), $header, $requestMessage));
     }
 
+    protected function getUri(string $path): string
+    {
+        return $this->getBaseUri() . "/$path";
+    }
+
+    /**
+     * @throws Exception
+     */
     protected function getMessageBody(MessageInterface $message): array
     {
         if (!$message->hasHeader('Content-Type')) {
-            throw new \Exception('Missing header Content-Type', 1);
+            throw new Exception('Missing header Content-Type', 1);
         }
 
         $allowedContentTypes = [
@@ -274,22 +279,22 @@ class OtpSimplePayClient implements LoggerAwareInterface
             'application/json',
         ];
         if (!array_intersect($allowedContentTypes, $message->getHeader('Content-Type'))) {
-            throw new \Exception('Not allowed Content-Type', 2);
+            throw new Exception('Not allowed Content-Type', 2);
         }
 
         if (!$message->hasHeader('signature')) {
-            throw new \Exception('Response has no signature', 3);
+            throw new Exception('Response has no signature', 3);
         }
 
         $signature = $message->getHeader('signature')[0];
         $bodyContent = $message->getBody()->getContents();
         if (!$this->getChecksum()->verify($this->getSecretKey(), $bodyContent, $signature)) {
-            throw new \Exception('Response checksum mismatch', 4);
+            throw new Exception('Response checksum mismatch', 4);
         }
 
         $body = json_decode($bodyContent, true);
         if (!is_array($body)) {
-            throw new \Exception('Response body is not a valid JSON', 5);
+            throw new Exception('Response body is not a valid JSON', 5);
         }
 
         return $body;
