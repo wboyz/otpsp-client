@@ -143,6 +143,12 @@ class PaymentRequest extends RequestBase
                     $data[$key] = $this->invoice->exportData();
                     break;
                 case 'delivery':
+                    if ($this->delivery->zip === ''
+                        || $this->delivery->address === ''
+                        || $this->delivery->city === ''
+                    ) {
+                        break;
+                    }
                     $data[$key] = $this->delivery->exportData();
                     break;
                 case 'items':
