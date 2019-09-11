@@ -290,17 +290,81 @@ class OtpSimplePayClientTest extends TestCase
         static::assertEquals($expected, $actual);
     }
 
+    public function casesParseInstantPaymentNotificationMessage(): array
+    {
+        return [
+            'basic' => [
+                $this->getBaseInstantPaymentNotification(),
+                'jRLcA9EYhm+xjfyXCJ9ft/OUuhgtRR5Ct2IQYCXAlTGtubvn7kBsBmp/5K2ExlGi',
+                json_encode([
+                    'method'        => 'CARD',
+                    'finishDate'    => '2019-09-01T00:12:42+02:00',
+                    'paymentDate'   => '2019-09-02T00:12:42+02:00',
+                    'status'        => 'FINISHED',
+                    'salt'          => 'test-salt',
+                    'merchant'      => 'test-merchant',
+                    'orderRef'      => 'test-order-ref',
+                    'transactionId' => 42,
+                ]),
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesParseInstantPaymentNotificationMessage
+     */
+    public function testParseInstantPaymentNotificationMessage(InstantPaymentNotification $expected, string $signature, string $bodyContent)
+    {
+        $logger = new NullLogger();
+        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $checksum */
+        $checksum = $this
+            ->getMockBuilder(Checksum::class)
+            ->getMock();
+        $checksum
+            ->expects($this->any())
+            ->method('verify')
+            ->willReturn(true);
+        $client = new Client();
+        $actual = (new OtpSimplePayClient($client, $checksum, $logger))
+            ->setSecretKey('')
+            ->parseInstantPaymentNotificationMessage($signature, $bodyContent);
+        static::assertEquals($expected, $actual);
+    }
+
+    public function casesParseIpnMessageFailed(): array
+    {
+        return [
+            'invalid signature' => [
+                new Exception('Response checksum mismatch'),
+                'wrong-signature',
+                'body-content'
+            ],
+            'invalid body' => [
+                new Exception('Response body is not a valid JSON', 5),
+                'rKj0k6d8P0ksIMLKO2tPzYJzY0iCKlV4RTlx5ACUHV86xfV18FcjtC28BRcs2DHy',
+                'invalid-body-content'
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesParseIpnMessageFailed
+     */
+    public function testParseIpnMessageFailed(Exception $expected, string $signature, string $bodyContent): void
+    {
+        $logger = new NullLogger();
+        /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $checksum */
+        $checksum = new Checksum();
+        $client = new Client();
+
+        static::expectExceptionObject($expected);
+        (new OtpSimplePayClient($client, $checksum, $logger))
+            ->setSecretKey('')
+            ->parseInstantPaymentNotificationMessage($signature, $bodyContent);
+    }
+
     public function casesGetInstantPaymentNotificationSuccessResponse(): array
     {
-        $ipn = new InstantPaymentNotification();
-        $ipn->salt = 'test-salt';
-        $ipn->orderRef = 'test-order-ref';
-        $ipn->method = 'CARD';
-        $ipn->merchant = 'test-merchant';
-        $ipn->finishDate = '2019-09-01T00:12:42+02:00';
-        $ipn->paymentDate = '2019-09-02T00:12:42+02:00';
-        $ipn->transactionId = 42;
-        $ipn->status = 'FINISHED';
 
         return [
             'basic' => [
@@ -322,7 +386,7 @@ class OtpSimplePayClientTest extends TestCase
                         'transactionId' => 42,
                     ])
                 ),
-                $ipn,
+                $this->getBaseInstantPaymentNotification(),
             ],
         ];
     }
@@ -346,6 +410,49 @@ class OtpSimplePayClientTest extends TestCase
         static::assertSame($expected->getStatusCode(), $response->getStatusCode());
         static::assertSame($expected->getHeaders(), $response->getHeaders());
         static::assertSame($expected->getBody()->getContents(), $response->getBody()->getContents());
+    }
+
+    public function casesGetIpnSuccessMessage(): array
+    {
+        return [
+            'basic' => [
+                [
+                    'statusCode' => 200,
+                    'body' => json_encode([
+                        'method'        => 'CARD',
+                        'finishDate'    => '2019-09-01T00:12:42+02:00',
+                        'paymentDate'   => '2019-09-02T00:12:42+02:00',
+                        'status'        => 'FINISHED',
+                        'receiveDate'   => '2019-09-03T00:12:42+02:00',
+                        'salt'          => 'test-salt',
+                        'merchant'      => 'test-merchant',
+                        'orderRef'      => 'test-order-ref',
+                        'transactionId' => 42,
+                    ]),
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'Signature' => '469yavaC3GOVWHKbyIAA35iL8yXTj4zlEhVZqmMPye/i72u1Mq05LcvFr3EgGP0I',
+                    ],
+                ],
+                $this->getBaseInstantPaymentNotification(),
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider casesGetIpnSuccessMessage
+     */
+    public function testGetIpnSuccessMessage(array $expected, InstantPaymentNotification $ipn): void
+    {
+        $guzzle = new Client();
+        $checksum = new Checksum();
+        $logger = new NullLogger();
+        $otpClient = new OtpSimplePayClient($guzzle, $checksum, $logger);
+        $otpClient
+            ->setSecretKey('')
+            ->setDateTimeClass(CustomDateTime::class);
+
+        static::assertSame($expected, $otpClient->getIpnSuccessMessage($ipn));
     }
 
     protected function createOptSimplePayClient(
@@ -388,5 +495,20 @@ class OtpSimplePayClientTest extends TestCase
         $logger = new NullLogger();
 
         return new OtpSimplePayClient($client, $checksum, $logger);
+    }
+
+    protected function getBaseInstantPaymentNotification(): InstantPaymentNotification
+    {
+        $ipn = new InstantPaymentNotification();
+        $ipn->salt = 'test-salt';
+        $ipn->orderRef = 'test-order-ref';
+        $ipn->method = 'CARD';
+        $ipn->merchant = 'test-merchant';
+        $ipn->finishDate = '2019-09-01T00:12:42+02:00';
+        $ipn->paymentDate = '2019-09-02T00:12:42+02:00';
+        $ipn->transactionId = 42;
+        $ipn->status = 'FINISHED';
+
+        return $ipn;
     }
 }

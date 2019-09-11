@@ -224,6 +224,26 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
         return InstantPaymentNotification::__set_state($body);
     }
 
+    /**
+     *
+     * @throws Exception
+     */
+    public function parseInstantPaymentNotificationMessage(string $signature, string $bodyContent): ?InstantPaymentNotification
+    {
+        if (!$this->getChecksum()->verify($this->secretKey, $bodyContent, $signature))
+        {
+            throw new Exception('Response checksum mismatch');
+        }
+
+        $message = json_decode($bodyContent, true);
+
+        if (!is_array($message)) {
+            throw new Exception('Response body is not a valid JSON', 5);
+        }
+
+        return InstantPaymentNotification::__set_state($message);
+    }
+
     public function getInstantPaymentNotificationSuccessResponse(
         InstantPaymentNotification $instantPaymentNotification
     ): ResponseInterface {
@@ -243,6 +263,28 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
             ],
             $message
         );
+    }
+
+    public function getIpnSuccessMessage(InstantPaymentNotification $ipn): array
+    {
+        $response = [];
+
+        if (empty($ipn->receiveDate)) {
+            /** @var \DateTimeInterface $now */
+            $now = new $this->dateTimeClass('now');
+            $ipn->receiveDate = $now->format('Y-m-d\TH:i:sP');
+        }
+
+        $message = json_encode($ipn);
+
+        $response['statusCode'] = 200;
+        $response['body'] = $message;
+        $response['headers'] = [
+            'Content-Type' => 'application/json',
+            'Signature' => $this->getChecksum()->calculate($this->secretKey, $message),
+        ];
+
+        return $response;
     }
 
     /**

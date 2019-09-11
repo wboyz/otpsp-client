@@ -66,9 +66,16 @@ interface OtpSimplePayClientInterface
 
     public function parseInstantPaymentNotificationRequest(RequestInterface $request): ?InstantPaymentNotification;
 
+    public function parseInstantPaymentNotificationMessage(
+        string $signature,
+        string $bodyContent
+    ): ?InstantPaymentNotification;
+
     public function getInstantPaymentNotificationSuccessResponse(
         InstantPaymentNotification $instantPaymentNotification
     ): ResponseInterface;
+
+    public function getIpnSuccessMessage(InstantPaymentNotification $ipn): array;
 
     public function sendRequest(RequestBase $requestType, string $path): ResponseInterface;
 }
