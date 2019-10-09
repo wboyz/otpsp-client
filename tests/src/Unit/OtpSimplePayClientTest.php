@@ -12,7 +12,7 @@ use Cheppers\OtpspClient\DataType\PaymentResponse;
 use Cheppers\OtpspClient\DataType\RefundRequest;
 use Cheppers\OtpspClient\DataType\RefundResponse;
 use Cheppers\OtpspClient\OtpSimplePayClient;
-use Cheppers\OtpspClient\Tests\Helper\CustomDateTime;
+use DateTime;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -313,8 +313,11 @@ class OtpSimplePayClientTest extends TestCase
     /**
      * @dataProvider casesParseInstantPaymentNotificationMessage
      */
-    public function testParseInstantPaymentNotificationMessage(InstantPaymentNotification $expected, string $signature, string $bodyContent)
-    {
+    public function testParseInstantPaymentNotificationMessage(
+        InstantPaymentNotification $expected,
+        string $signature,
+        string $bodyContent
+    ) {
         $logger = new NullLogger();
         /** @var \Cheppers\OtpspClient\Checksum|\PHPUnit\Framework\MockObject\MockObject $checksum */
         $checksum = $this
@@ -401,11 +404,10 @@ class OtpSimplePayClientTest extends TestCase
         $guzzle = new Client();
         $checksum = new Checksum();
         $logger = new NullLogger();
-        $otpClient = new OtpSimplePayClient($guzzle, $checksum, $logger);
-        $otpClient
+        $response = (new OtpSimplePayClient($guzzle, $checksum, $logger))
             ->setSecretKey('')
-            ->setDateTimeClass(CustomDateTime::class);
-        $response = $otpClient->getInstantPaymentNotificationSuccessResponse($ipn);
+            ->setNow(new DateTime('2019-09-03T00:12:42+02:00'))
+            ->getInstantPaymentNotificationSuccessResponse($ipn);
 
         static::assertSame($expected->getStatusCode(), $response->getStatusCode());
         static::assertSame($expected->getHeaders(), $response->getHeaders());
@@ -447,12 +449,12 @@ class OtpSimplePayClientTest extends TestCase
         $guzzle = new Client();
         $checksum = new Checksum();
         $logger = new NullLogger();
-        $otpClient = new OtpSimplePayClient($guzzle, $checksum, $logger);
-        $otpClient
+        $actual = (new OtpSimplePayClient($guzzle, $checksum, $logger))
             ->setSecretKey('')
-            ->setDateTimeClass(CustomDateTime::class);
+            ->setNow(new DateTime('2019-09-03T00:12:42+02:00'))
+            ->getIpnSuccessMessage($ipn);
 
-        static::assertSame($expected, $otpClient->getIpnSuccessMessage($ipn));
+        static::assertSame($expected, $actual);
     }
 
     protected function createOptSimplePayClient(

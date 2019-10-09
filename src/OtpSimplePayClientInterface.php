@@ -11,6 +11,7 @@ use Cheppers\OtpspClient\DataType\RefundRequest;
 use Cheppers\OtpspClient\DataType\InstantPaymentNotification;
 use Cheppers\OtpspClient\DataType\RefundResponse;
 use Cheppers\OtpspClient\DataType\RequestBase;
+use DateTimeInterface;
 use GuzzleHttp\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -39,12 +40,12 @@ interface OtpSimplePayClientInterface
      */
     public function setChecksum(ChecksumInterface $checksum);
 
-    public function getDateTimeClass(): string;
+    public function getNow(): DateTimeInterface;
 
     /**
      * @return $this
      */
-    public function setDateTimeClass(string $dateTimeClass);
+    public function setNow(DateTimeInterface $now);
 
     public function getSecretKey(): string;
 
