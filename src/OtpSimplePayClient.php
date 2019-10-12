@@ -31,11 +31,6 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
     /**
      * @var string
      */
-    protected $checksumDateFormat = 'Y-m-d\TH:i:sP';
-
-    /**
-     * @var string
-     */
     protected $baseUri = 'https://sandbox.simplepay.hu/payment/v2';
 
     /**
@@ -265,42 +260,29 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
     }
 
     public function getInstantPaymentNotificationSuccessResponse(
-        InstantPaymentNotification $instantPaymentNotification
+        InstantPaymentNotification $ipn
     ): ResponseInterface {
-        if (empty($instantPaymentNotification->receiveDate)) {
-            $instantPaymentNotification->receiveDate = $this->getNow()->format($this->checksumDateFormat);
-        }
+        $parts = $this->getInstantPaymentNotificationSuccessParts($ipn);
 
-        $message = json_encode($instantPaymentNotification);
-
-        return new Response(
-            200,
-            [
-                'Content-Type' => 'application/json',
-                'Signature' => $this->getChecksum()->calculate($this->secretKey, $message),
-            ],
-            $message
-        );
+        return new Response($parts['statusCode'], $parts['headers'], $parts['body']);
     }
 
-    public function getIpnSuccessMessage(InstantPaymentNotification $ipn): array
+    public function getInstantPaymentNotificationSuccessParts(InstantPaymentNotification $ipn): array
     {
-        $response = [];
-
         if (empty($ipn->receiveDate)) {
-            $ipn->receiveDate = $this->getNow()->format($this->checksumDateFormat);
+            $ipn->receiveDate = $this->getNow()->format(static::DATETIME_FORMAT);
         }
 
         $message = json_encode($ipn);
 
-        $response['statusCode'] = 200;
-        $response['body'] = $message;
-        $response['headers'] = [
-            'Content-Type' => 'application/json',
-            'Signature' => $this->getChecksum()->calculate($this->secretKey, $message),
+        return [
+            'statusCode' => 200,
+            'body' => $message,
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Signature' => $this->getChecksum()->calculate($this->secretKey, $message),
+            ],
         ];
-
-        return $response;
     }
 
     /**

@@ -1,4 +1,5 @@
 /bin/
+/example/log/
 /reports/
 /vendor/
 /phpcs.xml
