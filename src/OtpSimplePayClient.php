@@ -12,6 +12,7 @@ use Cheppers\OtpspClient\DataType\RefundResponse;
 use Cheppers\OtpspClient\DataType\RequestBase;
 use Cheppers\OtpspClient\DataType\PaymentResponse;
 use DateTime;
+use DateTimeInterface;
 use Exception;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Request;
@@ -26,6 +27,11 @@ use Psr\Log\LoggerInterface;
 class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
+
+    /**
+     * @var string
+     */
+    protected $checksumDateFormat = 'Y-m-d\TH:i:sP';
 
     /**
      * @var string
@@ -48,6 +54,17 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
         $this->baseUri = $value;
 
         return $this;
+    }
+
+    public function setBaseUriByMode(string $mode)
+    {
+        $mode = in_array($mode, ['secure', 'live', 'prod', 'production']) ?
+            'secure'
+            : 'sandbox';
+
+        $uri = "https://$mode.simplepay.hu/payment/v2";
+
+        return $this->setBaseUri($uri);
     }
 
     /**
@@ -91,21 +108,21 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
     }
 
     /**
-     * @var string
+     * @var \DateTimeInterface
      */
-    protected $dateTimeClass = DateTime::class;
+    protected $now;
 
-    public function getDateTimeClass(): string
+    public function getNow(): DateTimeInterface
     {
-        return $this->dateTimeClass;
+        return $this->now;
     }
 
     /**
      * @return $this
      */
-    public function setDateTimeClass(string $dateTimeClass)
+    public function setNow(DateTimeInterface $now)
     {
-        $this->dateTimeClass = $dateTimeClass;
+        $this->now = $now;
 
         return $this;
     }
@@ -157,11 +174,13 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
     public function __construct(
         ClientInterface $client,
         ChecksumInterface $checksumCalculator,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ?DateTimeInterface $now = null
     ) {
         $this
             ->setClient($client)
             ->setChecksum($checksumCalculator)
+            ->setNow($now ?: new DateTime())
             ->setLogger($logger);
     }
 
@@ -225,13 +244,13 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
     }
 
     /**
-     *
      * @throws Exception
      */
-    public function parseInstantPaymentNotificationMessage(string $signature, string $bodyContent): ?InstantPaymentNotification
-    {
-        if (!$this->getChecksum()->verify($this->secretKey, $bodyContent, $signature))
-        {
+    public function parseInstantPaymentNotificationMessage(
+        string $signature,
+        string $bodyContent
+    ): ?InstantPaymentNotification {
+        if (!$this->getChecksum()->verify($this->secretKey, $bodyContent, $signature)) {
             throw new Exception('Response checksum mismatch');
         }
 
@@ -241,6 +260,7 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
             throw new Exception('Response body is not a valid JSON', 5);
         }
 
+        // @todo Schema validation.
         return InstantPaymentNotification::__set_state($message);
     }
 
@@ -248,9 +268,7 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
         InstantPaymentNotification $instantPaymentNotification
     ): ResponseInterface {
         if (empty($instantPaymentNotification->receiveDate)) {
-            /** @var \DateTimeInterface $now */
-            $now = new $this->dateTimeClass('now');
-            $instantPaymentNotification->receiveDate = $now->format('Y-m-d\TH:i:sP');
+            $instantPaymentNotification->receiveDate = $this->getNow()->format($this->checksumDateFormat);
         }
 
         $message = json_encode($instantPaymentNotification);
@@ -270,9 +288,7 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
         $response = [];
 
         if (empty($ipn->receiveDate)) {
-            /** @var \DateTimeInterface $now */
-            $now = new $this->dateTimeClass('now');
-            $ipn->receiveDate = $now->format('Y-m-d\TH:i:sP');
+            $ipn->receiveDate = $this->getNow()->format($this->checksumDateFormat);
         }
 
         $message = json_encode($ipn);

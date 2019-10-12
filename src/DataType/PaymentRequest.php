@@ -4,6 +4,13 @@ declare(strict_types = 1);
 
 namespace Cheppers\OtpspClient\DataType;
 
+/**
+ * Represent a data structure to create a transaction.
+ *
+ * Endpoint https://sandbox.simplepay.hu/payment/v2/start
+ *
+ * @see http://simplepartner.hu/download.php?target=v21docen Chapter 3.3
+ */
 class PaymentRequest extends RequestBase
 {
 
@@ -93,6 +100,10 @@ class PaymentRequest extends RequestBase
     public $discount = 0;
 
     /**
+     * Date and time in the future.
+     *
+     * Format 'Y-m-d\TH:i:sP'.
+     *
      * @var string
      */
     public $timeout = '';

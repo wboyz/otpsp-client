@@ -3,21 +3,23 @@
 use Cheppers\OtpspClient\Checksum;
 use Cheppers\OtpspClient\DataType\PaymentRequest;
 use Cheppers\OtpspClient\OtpSimplePayClient;
+use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use Psr\Log\Test\TestLogger;
 
 require_once 'vendor/autoload.php';
 
-$secretKey = getenv('SECRET_KEY');
-$merchantId = getenv('MERCHANT_ID');
+$secretKey = getenv('OTPSP_SECRET_KEY');
+$merchantId = getenv('OTPSP_MERCHANT_ID');
+$baseUrl = getenv('OTPSP_BASE_URL');
 
-$guzzle = new \GuzzleHttp\Client();
+$guzzle = new Client();
 $serializer = new Checksum();
 $logger = new TestLogger();
 $otpSimple = new OtpSimplePayClient($guzzle, $serializer, $logger);
 $otpSimple->setSecretKey($secretKey);
 
-$now = new \DateTime('now');
+$now = new DateTime('now');
 
 $valuesPayment = [
     'merchant' => $merchantId,
