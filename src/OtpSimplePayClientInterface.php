@@ -19,6 +19,13 @@ use Psr\Http\Message\ResponseInterface;
 interface OtpSimplePayClientInterface
 {
 
+    /**
+     * In PHP 7.1 \DateTimeInterface::RFC3339 is not available.
+     *
+     * @see \DateTimeInterface::RFC3339
+     */
+    const DATETIME_FORMAT = 'Y-m-d\TH:i:sP';
+
     public function getBaseUri(): string;
 
     /**
@@ -77,11 +84,9 @@ interface OtpSimplePayClientInterface
         string $bodyContent
     ): ?InstantPaymentNotification;
 
-    public function getInstantPaymentNotificationSuccessResponse(
-        InstantPaymentNotification $instantPaymentNotification
-    ): ResponseInterface;
+    public function getInstantPaymentNotificationSuccessResponse(InstantPaymentNotification $ipn): ResponseInterface;
 
-    public function getIpnSuccessMessage(InstantPaymentNotification $ipn): array;
+    public function getInstantPaymentNotificationSuccessParts(InstantPaymentNotification $ipn): array;
 
     public function sendRequest(RequestBase $requestType, string $path): ResponseInterface;
 }

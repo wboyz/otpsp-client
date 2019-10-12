@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Start payment response</title>
+</head>
+<body>
+<main>
+    <h1>Start payment response</h1>
+    <section>
+        <h2>startPaymentResponseJson</h2>
+        <pre><code>{{ startPaymentResponseJson }}</code></pre>
+    </section>
+    <section>
+        <h2>logEntriesJson</h2>
+        <pre><code>{{ logEntriesJson }}</code></pre>
+    </section>
+    {% if startPaymentResponse.paymentUrl -%}
+        <section>
+            <h2>paymentURL</h2>
+            <a href="{{ startPaymentResponse.paymentUrl }}">Go to SimplePay</a>
+        </section>
+    {%- endif %}
+</main>
+{% include 'footer.html.twig' %}
+</body>
+</html>

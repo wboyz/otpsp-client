@@ -425,7 +425,7 @@ class OtpSimplePayClientTest extends TestCase
         static::assertSame($expected->getBody()->getContents(), $response->getBody()->getContents());
     }
 
-    public function casesGetIpnSuccessMessage(): array
+    public function casesGetInstantPaymentNotificationSuccessParts(): array
     {
         return [
             'basic' => [
@@ -455,9 +455,9 @@ class OtpSimplePayClientTest extends TestCase
     }
 
     /**
-     * @dataProvider casesGetIpnSuccessMessage
+     * @dataProvider casesGetInstantPaymentNotificationSuccessParts
      */
-    public function testGetIpnSuccessMessage(
+    public function testGetInstantPaymentNotificationSuccessParts(
         array $expected,
         InstantPaymentNotification $ipn
     ): void {
@@ -467,7 +467,7 @@ class OtpSimplePayClientTest extends TestCase
         $actual = (new OtpSimplePayClient($guzzle, $checksum, $logger))
             ->setSecretKey('')
             ->setNow(new DateTime('2019-09-03T00:12:42+02:00'))
-            ->getIpnSuccessMessage($ipn);
+            ->getInstantPaymentNotificationSuccessParts($ipn);
 
         static::assertSame($expected, $actual);
     }
