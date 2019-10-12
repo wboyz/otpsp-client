@@ -26,6 +26,11 @@ interface OtpSimplePayClientInterface
      */
     public function setBaseUri(string $baseUri);
 
+    /**
+     * @return mixed
+     */
+    public function setBaseUriByMode(string $mode);
+
     public function getClient(): ClientInterface;
 
     /**

@@ -56,6 +56,17 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
         return $this;
     }
 
+    public function setBaseUriByMode(string $mode)
+    {
+        $mode = in_array($mode, ['secure', 'live', 'prod', 'production']) ?
+            'secure'
+            : 'sandbox';
+
+        $uri = "https://$mode.simplepay.hu/payment/v2";
+
+        return $this->setBaseUri($uri);
+    }
+
     /**
      * @var \GuzzleHttp\ClientInterface
      */
@@ -249,6 +260,7 @@ class OtpSimplePayClient implements OtpSimplePayClientInterface, LoggerAwareInte
             throw new Exception('Response body is not a valid JSON', 5);
         }
 
+        // @todo Schema validation.
         return InstantPaymentNotification::__set_state($message);
     }
 
