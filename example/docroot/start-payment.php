@@ -30,7 +30,6 @@ $paymentRequest->customer = 'test-customer';
 $paymentRequest->customerEmail = 'test-email@example.com';
 $paymentRequest->language = 'HU';
 $paymentRequest->currency = 'HUF';
-$paymentRequest->total = 100;
 $paymentRequest->salt = 'd471d2fb24c5a395563ff60f8ba769d1';
 $paymentRequest->methods = ['CARD'];
 $paymentRequest->invoice->name = 'InvoiceName';
@@ -51,29 +50,36 @@ $paymentRequest->delivery->zip = '2222';
 $paymentRequest->delivery->address = 'DeliveryAddress1';
 $paymentRequest->delivery->address2 = 'DeliveryAddress2';
 $paymentRequest->delivery->phone = '06198765432';
-$paymentRequest->shippingCost = 20;
-$paymentRequest->discount = 41;
 $paymentRequest->timeout = $now->add($timeout)->format(OtpSimplePayClientInterface::DATETIME_FORMAT);
 $paymentRequest->urls->success = $app->getBaseUrl() . '/return.php';
 $paymentRequest->urls->cancel = $app->getBaseUrl() . '/return.php';
 $paymentRequest->urls->timeout = $app->getBaseUrl() . '/return.php';
 $paymentRequest->urls->fail = $app->getBaseUrl() . '/return.php';
-$paymentRequest->items[] = Item::__set_state([
+$paymentRequest->shippingCost = 100;
+$paymentRequest->discount = 50;
+$paymentRequest->items['a'] = Item::__set_state([
     'ref' => 'sku-product-1',
     'title' => 'Product 1',
     'description' => 'Description 1',
     'amount' => 1,
-    'price' => 1499,
-    'tax' => 42,
+    'price' => 500,
+    'tax' => 27,
 ]);
-$paymentRequest->items[] = Item::__set_state([
+$paymentRequest->items['b'] = Item::__set_state([
     'ref' => 'sku-product-2',
     'title' => 'Product 2',
     'description' => 'Description 2',
     'amount' => 2,
-    'price' => 2499,
-    'tax' => 43,
+    'price' => 600,
+    'tax' => 27,
 ]);
+
+$paymentRequest->total = 0;
+$paymentRequest->total += $paymentRequest->shippingCost;
+$paymentRequest->total -= $paymentRequest->discount;
+foreach ($paymentRequest->items as $item) {
+    $paymentRequest->total += ($item->price + ($item->price / 100 * $item->tax)) * $item->amount;
+}
 
 $startPaymentResponse = $otpSimple->startPayment($paymentRequest);
 
@@ -84,6 +90,8 @@ echo $app
     ->render(
         'start-payment.html.twig',
         [
+            'paymentRequest' => $paymentRequest,
+            'paymentRequestJson' => $app->jsonEncode($paymentRequest),
             'startPaymentResponse' => $startPaymentResponse,
             'startPaymentResponseJson' => $app->jsonEncode($startPaymentResponse),
             'logEntriesJson' => $app->jsonEncode($logger->records),
