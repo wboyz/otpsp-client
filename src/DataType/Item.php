@@ -27,12 +27,16 @@ class Item extends Base
     public $amount = 0;
 
     /**
+     * Nett price.
+     *
      * @var float
      */
     public $price = 0.0;
 
     /**
-     * @var int
+     * Percent.
+     *
+     * @var float
      */
     public $tax = 0;
 }
