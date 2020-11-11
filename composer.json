@@ -1,5 +1,5 @@
 {
-    "name": "cheppers/otpsp-client",
+    "name": "wboyz/otpsp-client",
     "description": "OTP SimplePay client",
     "type": "library",
     "license": "GPL-3.0-or-later",
